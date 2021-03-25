@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/">
+      <file>Resources/spear.ico</file>
+      <file>Resources/stopper_screen.png</file>
+      <file>Resources/plane_small.png</file>
+	  <file>Resources/settings.ico</file>
+      <file>Resources/open.ico</file>
+      <file>Resources/broom.ico</file>
+      <file>Resources/pulse.ico</file>
+    </qresource>
+</RCC>

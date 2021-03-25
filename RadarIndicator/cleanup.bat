@@ -1,0 +1,12 @@
+del /F C:\PROGRAMS\RadarIndicator\RadarIndicator.exe
+del /F C:\PROGRAMS\RadarIndicator\lib\*.lib
+del /F C:\PROGRAMS\RadarIndicator\Makefile
+del /F C:\PROGRAMS\RadarIndicator\IndicatorMain\Makefile*.*
+del /F C:\PROGRAMS\RadarIndicator\QExceptionDialog\Makefile*.*
+del /F C:\PROGRAMS\RadarIndicator\QIndicatorWindow\Makefile*.*
+del /F C:\PROGRAMS\RadarIndicator\QIniSettings\Makefile*.*
+del /F C:\PROGRAMS\RadarIndicator\QPoi\Makefile*.*
+del /F C:\PROGRAMS\RadarIndicator\QPropPages\Makefile*.*
+del /F C:\PROGRAMS\RadarIndicator\QRegFileParser\Makefile*.*
+del /F C:\PROGRAMS\RadarIndicator\QSqlModel\Makefile*.*
+del /F C:\PROGRAMS\RadarIndicator\QTargetsMap\Makefile*.*
