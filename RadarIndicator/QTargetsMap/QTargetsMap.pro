@@ -9,7 +9,7 @@ MOC_DIR = $$PWD/../build/.moc
 RCC_DIR = $$PWD/../build/.rcc
 UI_DIR = $$PWD/../build/.ui
 
-QT += core gui sql opengl widgets
+QT += core gui sql opengl
 
 TEMPLATE = lib
 

@@ -9,7 +9,7 @@ MOC_DIR = $$PWD/../build/.moc
 RCC_DIR = $$PWD/../build/.rcc
 UI_DIR = $$PWD/../build/.ui
 
-QT += core gui widgets
+QT += core gui
 
 TEMPLATE = lib
 
