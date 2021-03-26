@@ -26,3 +26,9 @@ raw_DFT.zip
 20200821_SpearSubmit/
 20200821_SpearSubmit.zip
 NumericalRecipes/
+*.dll
+DATA/
+include/
+NumericalRecipes
+**/*.dll
+
