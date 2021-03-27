@@ -31,4 +31,4 @@ DATA/
 include/
 NumericalRecipes
 **/*.dll
-
+**/*.pro

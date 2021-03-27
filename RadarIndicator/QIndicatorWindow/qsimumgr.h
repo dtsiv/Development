@@ -62,6 +62,8 @@ private:
 	QPoint m_qpRepresentative;
 	QPointF m_qpfWeighted;
 	quint32 m_uCandNum;
+    double m_d_y2mc_sum;
+    int m_iDelay;
     double m_dSNRc_rep;
 	double *m_pBeamAmplRe;
 	double *m_pBeamAmplIm;

@@ -265,6 +265,8 @@ void QSimuMgr::getectTargets() {
             m_qpfWeighted = pTarData->qpf_wei;
             m_uCandNum = pTarData->uCandNum;
             m_dSNRc_rep = pTarData->SNRc_rep;
+            m_d_y2mc_sum = pTarData->y2mc_sum;
+            m_iDelay = pTarData->qp_rep.x()-m_pPoi->m_iBlank;
 
             // get angles: elevation and azimuth for target
             getAngles();
@@ -421,6 +423,12 @@ void QSimuMgr::addTargetMarker() {
         qsAzDeg=QString("N/A");
         qsElDeg=QString("N/A");
     }
+    QString qsTarDistKM=QString("D:%1").arg(1.0e-3*m_qpfWeighted.x(),0,'f',1);
+    QString qsTarVelMpS=QString("V:%1").arg(m_qpfWeighted.y(),0,'f',0);
+    QString qsSigType=QString("Ty:%1").arg(m_pPoi->m_iSigType);
+    QString qsProbFA=QString("FA:%1").arg(m_pPoi->m_dFalseAlarmProb,0,'e',0);
+    QString qsTarSumDB=QString("Su:%1").arg(m_d_y2mc_sum,0,'f',0);
+    QString qsTarIDelay=QString("L:%1").arg(m_iDelay);
     int nFormularItems=m_pTargetsMap->m_qlFormularItems.size();
     for (int iItem=0; iItem<nFormularItems; iItem++) {
         struct QTargetsMap::sFormularItem *pItem = (struct QTargetsMap::sFormularItem *)&m_pTargetsMap->m_qlFormularItems.at(iItem);
@@ -443,11 +451,17 @@ void QSimuMgr::addTargetMarker() {
             case QTARGETSMAP_FORMULAR_ITEM_KDOPPLER:
                 qsItemText = qs_kDoppler; break;
             case QTARGETSMAP_FORMULAR_ITEM_TARDISTKM:
+                qsItemText = qsTarDistKM; break;
             case QTARGETSMAP_FORMULAR_ITEM_TARVELMPS:
+                qsItemText = qsTarVelMpS; break;
             case QTARGETSMAP_FORMULAR_ITEM_SIGTYPE:
+                qsItemText = qsSigType; break;
             case QTARGETSMAP_FORMULAR_ITEM_TARPROBFA:
+                qsItemText = qsProbFA; break;
             case QTARGETSMAP_FORMULAR_ITEM_TARSUMDB:
+                qsItemText = qsTarSumDB; break;
             case QTARGETSMAP_FORMULAR_ITEM_IDELAY :
+                qsItemText = qsTarIDelay; break;
             default:
                 continue;
         }

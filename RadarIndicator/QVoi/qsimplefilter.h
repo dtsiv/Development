@@ -3,8 +3,6 @@
 
 #include "qtracefilter.h"
 
-// ok, lets test git repo!!!!!!!
-
 class QSimpleFilter : public QTraceFilter {
 
 protected:
