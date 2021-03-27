@@ -9,7 +9,7 @@ public:
     KalExtended(const QCoreTraceFilter &other);
     ~KalExtended();
     virtual bool eatPrimaryPoint(int iPtIdx);
-    virtual double calcProximity(const QCoreTraceFilter::sPrimaryPt &primaryPoint) const;
+    virtual double calcProximity(const QCoreTraceFilter::sPrimaryPt *pPrimaryPoint) const;
     // dummy state
     double m_dR;
 };

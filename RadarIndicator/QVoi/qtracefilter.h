@@ -13,7 +13,7 @@ public:
         sPrimaryPt(QCoreTraceFilter::sPrimaryPt &primaryPointOther);
         virtual ~sPrimaryPt(){}
     };
-    virtual double calcProximity(const QCoreTraceFilter::sPrimaryPt &primaryPoint) const = 0;
+    virtual double calcProximity(const QCoreTraceFilter::sPrimaryPt *pPrimaryPoint) const = 0;
 
 protected:
     QList <int>m_qlPriPts; // indices within m_qlAllPriPts, which are related to this QTraceFilter

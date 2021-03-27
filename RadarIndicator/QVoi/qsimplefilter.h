@@ -4,28 +4,6 @@
 #include "qtracefilter.h"
 
 class QSimpleFilter : public QTraceFilter {
-
-protected:
-    struct sFilterState {
-        double dT;       // Filter-current time, seconds
-        double dX;       // EUN-coordinate, meters
-        double dY;       // EUN-coordinate, meters
-        double dZ;       // EUN-coordinate, meters
-        double dVX;      // EUN-coordinate, mps
-        double dVY;      // EUN-coordinate, mps
-        double dVZ;      // EUN-coordinate, mps
-    };
-
-    struct sLocalCoordSystem {
-        double dX;       // EUN-coordinate, meters
-        double dY;       // EUN-coordinate, meters
-        double dZ;       // EUN-coordinate, meters
-                         // n_R vector: n_R=\vec{R_L}/R_L
-        double dn_RX;    // n_R vector X-coordinate
-        double dn_RY;    // n_R vector Y-coordinate
-        double dn_RZ;    // n_R vector Z-coordinate
-    };
-
 public:
     struct sPrimaryPt : public QTraceFilter::sPrimaryPt {
         double dX;       // EUN-coordinate, meters
@@ -36,18 +14,34 @@ public:
         virtual ~sPrimaryPt(){}
     };
 
+protected:
+    struct sFilterState {
+        double dT;       // Filter-current time, seconds
+        double dX;       // EUN-coordinate, meters
+        double dY;       // EUN-coordinate, meters
+        double dZ;       // EUN-coordinate, meters
+        double dVX;      // EUN-coordinate, mps
+        double dVY;      // EUN-coordinate, mps
+        double dVZ;      // EUN-coordinate, mps
+        explicit sFilterState(const QSimpleFilter::sPrimaryPt *pPriPt) {
+            dT = pPriPt->dTs;
+            dX = pPriPt->dX; dY = pPriPt->dY; dZ = pPriPt->dZ;
+            dVX = 0.0e0; dVY = 0.0e0; dVZ = 0.0e0;
+        }
+    };
+
+public:
     QSimpleFilter(const QCoreTraceFilter &other);
     virtual ~QSimpleFilter();
 
     virtual bool eatPrimaryPoint(int iPtIdx);
-    virtual double calcProximity(const QCoreTraceFilter::sPrimaryPt &primaryPoint) const;
+    virtual double calcProximity(const QCoreTraceFilter::sPrimaryPt *pPrimaryPoint) const;
+    virtual bool isInsideSpaceStrobe(const struct sPrimaryPt *pPriPt);
     bool filterStep(const struct sPrimaryPt &pp);
-    // dummy state
-    double m_dR;
-    double m_dV_D;
+    bool linearRegression(const struct sPrimaryPt *pPriPt);
 
 private:
-    struct sFilterState m_sFS;
+    struct sFilterState *m_pFS;
 
 public:
     // virtual void print();

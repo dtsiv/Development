@@ -310,12 +310,13 @@ void QSimuMgr::getAngles() {
     // calculate angles from signal amplitudes for beams
     double dPI = 3.14159265e0;
     // double dAzimuth, dElevation; // angles in radians
-    m_bAnglesOk = m_pPoi->getAngles(m_pBeamAmplRe, m_pBeamAmplIm, m_dAzimuthRad, m_dElevationRad);
+    double dAzimuthMeas,dElevationMeas;
+    m_bAnglesOk = m_pPoi->getAngles(m_pBeamAmplRe, m_pBeamAmplIm, dAzimuthMeas,dElevationMeas);
     // cut unreasonable values
-    if (qIsNaN(m_dAzimuthRad) || qIsNaN(m_dElevationRad)) m_bAnglesOk = false;
-    m_dElevationDeg = m_dElevationRad*180.0e0/dPI;
+    if (qIsNaN(dAzimuthMeas) || qIsNaN(dElevationMeas)) m_bAnglesOk = false;
+    m_dElevationDeg = dElevationMeas*180.0e0/dPI;
     if (abs(m_dElevationDeg)>180.0e0) m_dElevationDeg = 360.0e0;
-    m_dAzimuthDeg = m_dAzimuthRad*180.0e0/dPI;
+    m_dAzimuthDeg = dAzimuthMeas*180.0e0/dPI;
     if (abs(m_dAzimuthDeg)>180.0e0) m_dAzimuthDeg = 360.0e0;
     QByteArray &baStructStrobeData  = m_pPoi->m_baStructStrobeData;
     ACM::STROBE_DATA *pStructStrobeData = (ACM::STROBE_DATA*)baStructStrobeData.data();
@@ -325,6 +326,8 @@ void QSimuMgr::getAngles() {
     m_dElevationScan = pBeamPos->beamEpsilon*180.0e0/32768;
     m_dAzimuthResult = m_dAzimuthScan + m_dAzimuthDeg;
     m_dElevationResult = m_dElevationScan + m_dElevationDeg;
+    m_dAzimuthRad = m_dAzimuthResult * dPI / 180.0e0;
+    m_dElevationRad = m_dElevationResult * dPI / 180.0e0;
     // cut unreasonable values
     if (abs(m_dAzimuthResult)>180.0e0) m_dAzimuthResult = 360.0e0;
     if (abs(m_dElevationResult)>180.0e0) m_dElevationResult = 360.0e0;
@@ -389,6 +392,7 @@ void QSimuMgr::dataFileOutput() {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void QSimuMgr::traceFilter() {
     double dVDWin = m_pPoi->m_dVelCoef*m_pPoi->m_NFFT;         // Doppler velocity window (m/s)
+
     m_iVoiIdx = m_pVoi->processPrimaryPoint(
         m_dTsExact,
         m_qpfWeighted.x(),

@@ -62,14 +62,15 @@ template <typename T>
 int QCoreTraceFilter::addPrimaryPoint(struct sPrimaryPt &primaryPoint) {
     // immediately add to list and obtain the return index iPtIdx
     int iPtIdx = m_qlAllPriPts.size();
-    m_qlAllPriPts.append(new T::sPrimaryPt(primaryPoint));
+    T::sPrimaryPt *pp=new T::sPrimaryPt(primaryPoint);
+    m_qlAllPriPts.append(pp);
     // get primary point proximity to each filter state
     if (m_qlFilters.size()) {
         QList<int> qlFltIndxsLocal;
         QList<double> qlDist;
         for (int i=0; i<m_qlFilters.size(); i++) {
             qlFltIndxsLocal<<i;
-            qlDist<<m_qlFilters.at(i)->calcProximity(primaryPoint);
+            qlDist<<m_qlFilters.at(i)->calcProximity(pp);
         }
         // sort qlDist ascending together with qlFltIndxsLocal
         for (int i=0; i<qlFltIndxsLocal.size()-1; i++) {

@@ -33,6 +33,6 @@ bool KalExtended::eatPrimaryPoint(int iPtIdx) {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-double KalExtended::calcProximity(const QCoreTraceFilter::sPrimaryPt &primaryPoint) const {
-    return abs(primaryPoint.dR-m_dR);
+double KalExtended::calcProximity(const QCoreTraceFilter::sPrimaryPt *pPrimaryPoint) const {
+    return abs(pPrimaryPoint->dR-m_dR);
 }
