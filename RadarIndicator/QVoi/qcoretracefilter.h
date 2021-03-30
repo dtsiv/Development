@@ -24,6 +24,12 @@ public:
     // process primary point using a specific trace filter
     int addPrimaryPoint(struct sPrimaryPt &primaryPoint);
 
+    // filter status
+    struct sFilterState {
+        QString qsName;
+        QPointF qpfDistVD;
+    };
+
 private:
     QCoreTraceFilter(){}
     template <typename T>
@@ -46,11 +52,16 @@ private:
 
     // simulation parameters accessible for descendants
 protected:
-    double m_dMeasNoise;
+    static double m_dMeasNoise;
     static QList<struct sPrimaryPt *>m_qlAllPriPts;
+    static QMap<int,double> m_qmCorrThresh;
+    static int m_iMaxClusterSz;
 
     // private members - restrict access to them from individual filters
 private:
+    static double m_dCorrSignif;
+    void initCorrThresh();
+    double twoSidedStudentProbability(double dThreshold, int iDegreesOfFreedomN);
     static QList<QTraceFilter *>m_qlFilters;
     friend class QVoi;
 

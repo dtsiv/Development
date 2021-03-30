@@ -30,13 +30,19 @@ public:
     // void ttest();
     double twoSidedStudentSignificance(double dThreshold, int iDegreesOfFreedomN);
     virtual bool eatPrimaryPoint(int iPtIdx) = 0;
+    virtual QCoreTraceFilter::sFilterState getState(double dTime);
+    virtual bool isStale(double dTime);
+    virtual bool isTrackingOn() { return m_bTrackingOn; }
 
 protected:
     Matrix m_mH;
     bool m_bTrackingOn;
+    QString m_qsFilterName;
 
 public:
     // virtual void print();
+private:
+    static int m_iNextFilterNumber;
 };
 
 #endif // QTRACEFILTER_H

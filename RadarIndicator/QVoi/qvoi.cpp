@@ -1,5 +1,6 @@
 #include "qvoi.h"
 #include "qcoretracefilter.h"
+#include "qtracefilter.h"
 #include "qinisettings.h"
 #include "qexceptiondialog.h"
 
@@ -8,11 +9,15 @@
 //--------------------------------------------------------------------------------------------------
 QVoi::QVoi(QObject *parent /* = 0 */)
         : QObject(parent)
-        , m_coreInstance(QCoreTraceFilter::getInstance()) {
+        , m_coreInstance(QCoreTraceFilter::getInstance())
+        , m_dTcurrent(0.0e0) {
     QIniSettings &iniSettings = QIniSettings::getInstance();
     QIniSettings::STATUS_CODES scRes;
     iniSettings.setDefault(QVOI_MEAS_NOISE_VAR,0.0e0);
     m_coreInstance.m_dMeasNoise = iniSettings.value(QVOI_MEAS_NOISE_VAR,scRes).toDouble();
+    m_coreInstance.m_dCorrSignif = 0.8e0;
+    m_coreInstance.m_iMaxClusterSz = 6;
+    m_coreInstance.initCorrThresh();
 }
 //--------------------------------------------------------------------------------------------------
 //
@@ -69,6 +74,9 @@ int QVoi::processPrimaryPoint(
         double dAzRad,   // azimuth (radians)
         double dV_D,     // Doppler velocity (m/s)
         double dVDWin) { // Doppler velocity window (m/s)
+    // update current time (seconds)
+    m_dTcurrent = (dTsExact > m_dTcurrent) ? dTsExact : m_dTcurrent;
+    // call addPrimaryPoint() method of the singleton
     QCoreTraceFilter::sPrimaryPt newPrimaryPoint;
     newPrimaryPoint.dTs = dTsExact;
     newPrimaryPoint.dR = dR;
@@ -77,4 +85,29 @@ int QVoi::processPrimaryPoint(
     newPrimaryPoint.dV_D = dV_D;
     newPrimaryPoint.dVDWin = dVDWin;
     return m_coreInstance.addPrimaryPoint(newPrimaryPoint);
+}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+void QVoi::listFilters(QList<struct QVoi::sFilterInfo> &qlFiltersInfo) {
+
+    int i1=0;
+    while (i1 < m_coreInstance.m_qlFilters.count()) {
+        if (m_coreInstance.m_qlFilters.at(i1)->isStale(m_dTcurrent)) {
+            delete m_coreInstance.m_qlFilters.takeAt(i1);
+        }
+        else {  // only need to advance if m_qlFilters.at(i1) did not change
+            i1++;
+        }
+    }
+    QListIterator<QTraceFilter *> i(m_coreInstance.m_qlFilters);
+    while (i.hasNext()) {
+        QTraceFilter *pFilter = i.next();
+        if (!pFilter->isTrackingOn()) continue;
+        QCoreTraceFilter::sFilterState sState = pFilter->getState(m_dTcurrent);
+        struct QVoi::sFilterInfo sInfo;
+        sInfo.qpfDistVD=sState.qpfDistVD;
+        sInfo.qsFormular=sState.qsName; // maybe some more here
+        qlFiltersInfo.append(sInfo);
+    }
 }

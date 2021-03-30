@@ -11,6 +11,8 @@ using namespace std;
 #include "cmatrix"
 typedef techsoft::matrix<double> Matrix;
 
+int QTraceFilter::m_iNextFilterNumber=1;
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -18,6 +20,7 @@ QTraceFilter::QTraceFilter(const QCoreTraceFilter &other)
         : QCoreTraceFilter(other)
         , pPriPtNULL(NULL)
         , m_bTrackingOn(false) {
+    m_qsFilterName=QString("F%1").arg(m_iNextFilterNumber++,2,10,QChar('0'));
 //    static bool bInit=false;
 //    if (!bInit) {
 //        qDebug() << "Init: QTraceFilter::QTraceFilter(const QCoreTraceFilter &other)";
@@ -30,6 +33,21 @@ QTraceFilter::QTraceFilter(const QCoreTraceFilter &other)
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 QTraceFilter::~QTraceFilter() {
+}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/* virtual */ QCoreTraceFilter::sFilterState QTraceFilter::getState(double dTime) {
+    QCoreTraceFilter::sFilterState sState;
+    sState.qpfDistVD=QPointF(0*dTime,0);
+    sState.qsName=m_qsFilterName;
+    return sState;
+}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/* virtual */ bool QTraceFilter::isStale(double dTime) {
+    return (bool)(0.0*dTime);
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
@@ -169,13 +187,6 @@ void QTraceFilter::inversion() {
         }
         fp.close();
         return;
-}
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-//
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-double QTraceFilter::twoSidedStudentSignificance(double dThreshold, int iDegreesOfFreedomN) {
-    return 1.0e0-NR::betai(0.5*iDegreesOfFreedomN,0.5,
-                     iDegreesOfFreedomN/(iDegreesOfFreedomN+dThreshold*dThreshold));
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //

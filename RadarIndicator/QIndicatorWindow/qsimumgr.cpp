@@ -88,6 +88,9 @@ void QSimuMgr::processStrob() {
         m_bStarted = true;
     }
 
+    // list filters info
+    filterMarkers();
+
     // Update status info
     updateStatusInfo();
 
@@ -473,9 +476,9 @@ void QSimuMgr::addTargetMarker() {
         qsLegend+=qsItemText;
     }
     if (qsLegend.isEmpty()) qsLegend=QString("N/A");
-    QTargetMarker *pTarMark = new QTargetMarker(m_qpfWeighted,qsLegend);
-    pTarMark->m_iVoiIdx = this->m_iVoiIdx;
-    m_pTargetsMap->addTargetMarker(pTarMark);
+//    QTargetMarker *pTarMark = new QTargetMarker(m_qpfWeighted,qsLegend);
+//    pTarMark->m_iVoiIdx = this->m_iVoiIdx;
+//    m_pTargetsMap->addTargetMarker(pTarMark);
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
@@ -632,6 +635,20 @@ void QSimuMgr::restart() {
         // restart timer with new interval (msec)
         // qDebug() << "Main query exec() ok. Starting simulation timer";
         m_pOwner->m_simulationTimer.start(m_pTargetsMap->m_uTimerMSecs);
+    }
+}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+void QSimuMgr::filterMarkers() {
+    QList <QVoi::sFilterInfo> qlFiltersInfo;
+    m_pVoi->listFilters(qlFiltersInfo);
+    QListIterator<QVoi::sFilterInfo> i(qlFiltersInfo);
+    while (i.hasNext()) {
+        QVoi::sFilterInfo sInfo = i.next();
+        QTargetMarker *pTarMark = new QTargetMarker(sInfo.qpfDistVD,sInfo.qsFormular);
+        pTarMark->m_iVoiIdx = 0;
+        m_pTargetsMap->addTargetMarker(pTarMark);
     }
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

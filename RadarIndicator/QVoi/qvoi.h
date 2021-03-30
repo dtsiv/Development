@@ -22,9 +22,15 @@ class QCoreTraceFilter;
 class QVoi:public QObject {
     Q_OBJECT
 public:
+    struct sFilterInfo {
+        QPointF qpfDistVD;
+        QString qsFormular;
+    };
+
     explicit QVoi(QObject *parent = 0);
     ~QVoi();
 
+    void listFilters(QList<struct sFilterInfo> & qlFiltersInfo);
     int processPrimaryPoint(
             double dTsExact, // exact time of strobe exection (seconds)
             double dR,       // distance (meters)
@@ -38,5 +44,6 @@ public:
 
 private:
     QCoreTraceFilter &m_coreInstance;
+    double m_dTcurrent;
 };
 #endif // QVOI_H

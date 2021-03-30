@@ -48,11 +48,60 @@ QSimpleFilter::~QSimpleFilter() {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/* virtual */ QCoreTraceFilter::sFilterState QSimpleFilter::getState(double dTime) {
+    QCoreTraceFilter::sFilterState sState;
+    double xx, yy, zz, rr;
+    double dDeltaT = dTime - m_pFS->dT;
+    // distance
+    double dX = m_pFS->dX+m_pFS->dVX*dDeltaT;
+    double dY = m_pFS->dY+m_pFS->dVY*dDeltaT;
+    double dZ = m_pFS->dZ+m_pFS->dVZ*dDeltaT;
+    xx = dX*dX; yy = dY*dY; zz = dZ*dZ;
+    rr = sqrt(xx+yy+zz);
+    sState.qpfDistVD.rx() = rr;
+    double dVX = m_pFS->dVX;
+    double dVY = m_pFS->dVY;
+    double dVZ = m_pFS->dVZ;
+    // Doppler velocity
+    xx=dX*dVX; yy=dY*dVY; zz=dZ*dVZ;
+    sState.qpfDistVD.ry() = (xx+yy+zz)/rr;
+    sState.qsName=m_qsFilterName;
+    return sState;
+}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/* virtual */ bool QSimpleFilter::isStale(double dTime) {
+    return (dTime-m_pFS->dT)>3.0e0;
+}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 bool QSimpleFilter::eatPrimaryPoint(int iPtIdx) {
     sPrimaryPt *pPriPt = dynamic_cast<struct QSimpleFilter::sPrimaryPt*>(m_qlAllPriPts.value(iPtIdx,pPriPtNULL));
-    if (!pPriPt) return false; // not valid list index or failed dynamic_cast
+    if (!pPriPt) {
+        throw RmoException("eatPrimaryPoint() dynamic cast failed"); // not valid list index or failed dynamic_cast
+    }
+    // empty filter always eats first point
+    if (!m_pFS) {
+        m_pFS = new sFilterState(pPriPt);
+        pPriPt->pFlt = this;
+        m_qlCluster.append(iPtIdx);
+        m_qlPriPts.append(iPtIdx);
+        qDebug() << QString("%1: new cluster #%4 R=%2 VD=%3")
+                                   .arg(pPriPt->dTs).arg(pPriPt->dR).arg(pPriPt->dV_D).arg(m_qsFilterName);
+        return true;
+    }
     // from now on we can guarantee that pPriPt has type <QTraceFilter::sPrimaryPt*>
     if (!isInsideSpaceStrobe(pPriPt)) { // filter rejects this pt
+        if (m_bTrackingOn) {
+            qDebug() << QString("%1: active filter #%4 rejected R=%2 VD=%3")
+                                       .arg(pPriPt->dTs).arg(pPriPt->dR).arg(pPriPt->dV_D).arg(m_qsFilterName);
+        }
+        else {
+            qDebug() << QString("%1: cluster #%4 rejected R=%2 VD=%3")
+                                       .arg(pPriPt->dTs).arg(pPriPt->dR).arg(pPriPt->dV_D).arg(m_qsFilterName);
+        }
         return false;
     }
     // if trajectory was started ...
@@ -69,13 +118,20 @@ bool QSimpleFilter::eatPrimaryPoint(int iPtIdx) {
         }
     }
     // ... else append primary point to cluster
-    if (m_qlCluster.isEmpty() // first point in cluster or point in line of cluster
-         || (!m_qlCluster.isEmpty() && linearRegression(pPriPt))) { // primary point accepted
+    if (linearRegression(pPriPt)) { // primary point accepted
         pPriPt->pFlt = this;
         m_qlCluster.append(iPtIdx);
         m_qlPriPts.append(iPtIdx);
         // qDebug() << "Pt appended to cluster";
         return true;
+    }
+    if (m_bTrackingOn) {
+        qDebug() << QString("%1: active filter #%4, linear regression failed R=%2 VD=%3")
+                                   .arg(pPriPt->dTs).arg(pPriPt->dR).arg(pPriPt->dV_D).arg(m_qsFilterName);
+    }
+    else {
+        qDebug() << QString("%1: cluster #%4, linear regression failed R=%2 VD=%3")
+                                   .arg(pPriPt->dTs).arg(pPriPt->dR).arg(pPriPt->dV_D).arg(m_qsFilterName);
     }
     return false;
 }
@@ -83,6 +139,7 @@ bool QSimpleFilter::eatPrimaryPoint(int iPtIdx) {
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 bool QSimpleFilter::linearRegression(const struct sPrimaryPt *pPriPt) {
+    // check existing cluster
     int N = m_qlCluster.size();
     if (N<1) throw RmoException("QSimpleFilter::linearRegression: N=0");
     double dTavr=0.0e0,dTsigma2=0.0e0;
@@ -95,26 +152,18 @@ bool QSimpleFilter::linearRegression(const struct sPrimaryPt *pPriPt) {
         int iPtIdx = m_qlCluster.value(i,-1);
         if (iPtIdx<0) {
             throw RmoException("QSimpleFilter::linearRegression: iPtIdx>=m_qlAllPriPts.size()");
-            return false;
         }
         sPrimaryPt *pp = dynamic_cast<struct QSimpleFilter::sPrimaryPt*>(m_qlAllPriPts.value(iPtIdx,pPriPtNULL));
         if (!pp) {
             throw RmoException("QSimpleFilter::linearRegression: dynamic_cast failed");
-            return false;
         }
         qlT<<pp->dTs; qlX<<pp->dX; qlY<<pp->dY; qlZ<<pp->dZ;
         dV_D = pp->dV_D;
         dVDWin = pp->dVDWin;
     }
-    double dVV = remainder(pPriPt->dV_D - dV_D, pPriPt->dVDWin);
-    dVV = abs(dVV) / pPriPt->dVDWin;
-    // cannot accept primary point with different Doppler velocity
-    if (pPriPt->dVDWin != dVDWin) {
-        qDebug() << "Rejecting different Doppler window: pPriPt->dVDWin != dVDWin" << pPriPt->dVDWin << " <> " << dVDWin;
-        return false;
-    }
-    if (dVV > 0.2) {
-        // qDebug() << "Rejecting different Doppler velocity: " << pPriPt->dV_D << " <> " << dV_D << " dVV=" << dVV;
+    // cannot add point with same time dTs
+    if (abs(pPriPt->dTs-qlT.last())<1.0e-6*dEPS) {
+        qDebug() << "Rejecting pt with same time " << pPriPt->dTs;
         return false;
     }
     // append pPriPt to the lists
@@ -135,18 +184,20 @@ bool QSimpleFilter::linearRegression(const struct sPrimaryPt *pPriPt) {
     double dTsigma=sqrt(dTsigma2);
     if(dTsigma<dEPS) {
         throw RmoException("QSimpleFilter::linearRegression: sqrt(dTsigma2)<dEPS");
-        return false;
     }
     // linear regression coefficients
     double dVX=dXT/dTsigma2; double dVY=dYT/dTsigma2; double dVZ=dZT/dTsigma2;
     // velocity direction unit vector
     double dVX2=dVX*dVX; double dVY2=dVY*dVY; double dVZ2=dVZ*dVZ;
     double dV=sqrt(dVX2+dVY2+dVZ2);
-    if (dV<dEPS) return true; // accept targets with no motion
+    if (dV<dEPS) {
+        qDebug() << QString("%1: accepting pt with no motion").arg(pPriPt->dTs);
+        return true; // accept targets with no motion
+    }
     double dnVX=dVX/dV; double dnVY=dVY/dV; double dnVZ=dVZ/dV;
     // correlation coefficient
+    QList<double> dRp;
     if (N>2) {
-        QList<double> dRp;
         for (int i=0; i<N; i++) {
             dRp<<(qlX.at(i)*dnVX+qlY.at(i)*dnVY+qlZ.at(i)*dnVZ);
         }
@@ -163,8 +214,9 @@ bool QSimpleFilter::linearRegression(const struct sPrimaryPt *pPriPt) {
         }
         double dCorrCoef=dRpT/dTsigma/sqrt(dRpsigma2);
         // reject low correlation -- IMPROVE with significance level!!!
-        if (abs(dCorrCoef)<0.5) {
-            qDebug() << "Rejecting CorrCoef = " << dCorrCoef;
+        if (abs(dCorrCoef)<m_qmCorrThresh.value(N,2.0e0)) {
+            qDebug() << QString("%1: cluster #%2 Rejecting CorrCoef %3")
+                     .arg(pPriPt->dTs).arg(m_qsFilterName).arg(dCorrCoef);
             return false;
         }
     }
@@ -173,44 +225,127 @@ bool QSimpleFilter::linearRegression(const struct sPrimaryPt *pPriPt) {
     m_pFS->dX=dXavr+dVX*dDeltaT;
     m_pFS->dY=dYavr+dVY*dDeltaT;
     m_pFS->dZ=dZavr+dVZ*dDeltaT;
-    if (N>6) {
-        qDebug() << QString("Bind (%1,%2,%3) V (%4,%5,%6)")
-                    .arg(m_pFS->dX).arg(m_pFS->dY).arg(m_pFS->dZ)
-                    .arg(m_pFS->dVX).arg(m_pFS->dVY).arg(m_pFS->dVZ);
+    if (N>=m_iMaxClusterSz) {
+//####################### DEBUGGING ################################
+#if 0
+        QFile qfOut("lr.dat");
+        bool bOut=true;
+        if (qfOut.exists()) bOut=false;
+        qfOut.open(QIODevice::WriteOnly);
+        QTextStream tsOut(&qfOut);
+        if (bOut) {
+            for (int i=0; i<N; i++) {
+                tsOut << qlT.at(i)
+                      << "\t" << qlX.at(i)
+                      << "\t" << qlY.at(i)
+                      << "\t" << qlZ.at(i)
+                      << "\t" << dRp.at(i)
+                      << endl;
+            }
+        }
+#endif
+//##################################################################
+        qDebug() << QString("%1: cluster #%2 Bind R=%3 VD=%4")
+                    .arg(m_pFS->dT).arg(m_qsFilterName).arg(pPriPt->dR).arg(pPriPt->dV_D);
         m_bTrackingOn=true;
     }
-    qDebug() << QString("Appending pt to cluster: N=%1 R(%2,%3,%4) V(%5,%6,%7)")
-                .arg(N).arg(m_pFS->dX).arg(m_pFS->dY).arg(m_pFS->dZ)
-                .arg(m_pFS->dVX).arg(m_pFS->dVY).arg(m_pFS->dVZ);
+    qDebug() << QString("%4: cluster #%5 newpt N=%1 R(%2) V_D(%3)")
+                .arg(N).arg(pPriPt->dR)
+                .arg(pPriPt->dV_D)
+                .arg(pPriPt->dTs).arg(m_qsFilterName);
     return true;
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 bool QSimpleFilter::isInsideSpaceStrobe(const struct sPrimaryPt *pPriPt) {
-    if (!m_pFS) {
-        m_pFS = new sFilterState(pPriPt);
-        return true;
+    if (!m_pFS || m_qlCluster.isEmpty()) { // function called before first primary point - error
+        throw RmoException("QSimpleFilter::isInsideSpaceStrobe() early call!");
     }
     double dDeltaR = calcProximity(pPriPt);
-    double dDeltaV = 0.0e0;
-    double dVn;
-    if (m_qlCluster.size()>1) {
-        double xx=m_pFS->dX; xx=xx*xx;
-        double yy=m_pFS->dY; yy=yy*yy;
-        double zz=m_pFS->dZ; zz=zz*zz;
-        double rr=sqrt(xx+yy+zz);
-        if (rr<dEPS) return false;
-        double dnX = m_pFS->dX/rr;
-        double dnY = m_pFS->dY/rr;
-        double dnZ = m_pFS->dZ/rr;
-        dVn = m_pFS->dVX*dnX+m_pFS->dVY*dnY+m_pFS->dVZ*dnZ;
-        dDeltaV = remainder(pPriPt->dV_D - dVn, pPriPt->dVDWin);
-        dDeltaV = abs(dDeltaV)/pPriPt->dVDWin;
+    // cut distant points immediately
+    if (dDeltaR>100.0e0) {
+        if (m_bTrackingOn) {
+            qDebug()
+                << QString("%1: active filter #%5 rejected pt @ %4 meters away R=%2 VD=%3")
+                   .arg(pPriPt->dTs).arg(pPriPt->dR)
+                   .arg(pPriPt->dV_D)
+                   .arg(dDeltaR).arg(m_qsFilterName);
+        }
+        else {
+            qDebug()
+                << QString("%1: cluster #%5 rejected pt @ %4 meters away R=%2 VD=%3")
+                   .arg(pPriPt->dTs).arg(pPriPt->dR)
+                   .arg(pPriPt->dV_D)
+                   .arg(dDeltaR).arg(m_qsFilterName);
+        }
+        return false;
     }
-    if (dDeltaR < 100.0 && (dDeltaV < 0.2 || (!m_bTrackingOn && m_qlCluster.size()==2))) {
+    // if no trajectory was started ...
+    if (!m_bTrackingOn) {
+        // first compare Doppler velocity with the last point in cluster
+        int iLast = m_qlCluster.last();
+        sPrimaryPt *pp = dynamic_cast<struct QSimpleFilter::sPrimaryPt*>(m_qlAllPriPts.value(iLast,pPriPtNULL));
+        if (!pp) {
+            throw RmoException("QSimpleFilter::linearRegression: dynamic_cast failed");
+            return false;
+        }
+        // compare Doppler velocity with the most recent point in cluster (if Doppler windows match!)
+        if (abs(pp->dVDWin-pPriPt->dVDWin) < dEPS) {
+            double dV_Dlast = pp->dV_D;
+            double dDeltaV = remainder(pPriPt->dV_D - dV_Dlast, pPriPt->dVDWin);
+            dDeltaV = abs(dDeltaV)/pPriPt->dVDWin;
+            if (dDeltaV < 0.1) {
+                if (m_qlCluster.size()==2) qDebug() << QString("%1: cluster #%4 of two pts @ dist %2, V_D=%3")
+                                   .arg(pPriPt->dTs)
+                                   .arg(pPriPt->dR)
+                                   .arg(pPriPt->dV_D).arg(m_qsFilterName);
+                return true;
+            }
+        }
+        // no need to proceed, if cluster has only one point
+        if (m_qlCluster.size()==1) return false;
+    }
+
+    // DEBUG DEBUG !!!
+    int iLast = m_qlPriPts.last();
+    sPrimaryPt *pp = dynamic_cast<struct QSimpleFilter::sPrimaryPt*>(m_qlAllPriPts.value(iLast,pPriPtNULL));
+    if (!pp) {
+        throw RmoException("QSimpleFilter::linearRegression: dynamic_cast failed");
+        return false;
+    }
+    if (abs(pPriPt->dVDWin - pp->dVDWin) < dEPS) {
+        double dDeltaV = remainder(pPriPt->dV_D - pp->dV_D, pPriPt->dVDWin);
+        dDeltaV = abs(dDeltaV)/pPriPt->dVDWin;
+        if (dDeltaV < 0.1) {
+            return true;
+        }
+        qDebug() << QString("%1: #%3 skipping dDeltaV=%2").arg(pPriPt->dTs).arg(dDeltaV).arg(m_qsFilterName);
+    }
+    // compare Doppler velocity with the filter state
+    double xx=m_pFS->dX;
+    double yy=m_pFS->dY;
+    double zz=m_pFS->dZ;
+    double rr=xx*xx+yy*yy+zz*zz;
+    rr = sqrt(rr);
+    if (rr<dEPS) return false; // filter state must make sense!
+    // calculate radial velocity for filter state
+    double dVr = m_pFS->dVX*xx+m_pFS->dVY*yy+m_pFS->dVZ*zz;
+    dVr = dVr / rr;
+    double dDeltaV = remainder(pPriPt->dV_D - dVr, pPriPt->dVDWin);
+    dDeltaV = abs(dDeltaV)/pPriPt->dVDWin;
+    if (dDeltaV < 0.1) {
         return true;
     }
+    if (m_bTrackingOn) {
+        qDebug() << QString("%1: Traj #%6 rejects dDeltaV=%2 (%4 - %3 %% %5)")
+                    .arg(pPriPt->dTs)
+                    .arg(dDeltaV)
+                    .arg(dVr)
+                    .arg(pPriPt->dV_D)
+                    .arg(pPriPt->dVDWin).arg(m_qsFilterName);
+    }
+
     // qDebug() << "Rejecting space strobe: " << dDeltaR << " Vold " << dVn << " Vnew " << pPriPt->dV_D << " dDeltaV=" << dDeltaV;
     return false;
 }

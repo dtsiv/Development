@@ -39,6 +39,8 @@ public:
     virtual bool isInsideSpaceStrobe(const struct sPrimaryPt *pPriPt);
     bool filterStep(const struct sPrimaryPt &pp);
     bool linearRegression(const struct sPrimaryPt *pPriPt);
+    virtual QCoreTraceFilter::sFilterState getState(double dTime);
+    virtual bool isStale(double dTime);
 
 private:
     struct sFilterState *m_pFS;
