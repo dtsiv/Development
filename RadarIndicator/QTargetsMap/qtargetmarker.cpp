@@ -1,15 +1,35 @@
 #include "qtargetmarker.h"
 #include "qformular.h"
+#include "qvoi.h"
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-QTargetMarker::QTargetMarker(QPointF qpTarPhys, QString qsMesg /* = QString() */, QObject *parent /* = 0 */)
-        : QObject(parent)
+QTargetMarker::QTargetMarker(const sVoiPrimaryPointInfo &sPriPtInfo)
+        : QObject(NULL)
         , m_pFormular(NULL)
-        , m_qpTarPhys(qpTarPhys)
-        , m_qsMesg(qsMesg)
-        , m_iVoiIdx(-1) {
+        , m_qpTarPhys(sPriPtInfo.qpfDistVD)
+        , m_qsMesg(sPriPtInfo.qsFormular)
+        , m_iPriPtIdx(sPriPtInfo.uPriPtIndex)
+        , m_iFltIdx(sPriPtInfo.uFilterIndex) {
+    m_emtType = PRIMARY_POINT;
+}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+QTargetMarker::QTargetMarker(sVoiFilterInfo *pFilterInfo)
+        : QObject(NULL)
+        , m_pFormular(NULL)
+        , m_qpTarPhys(pFilterInfo->qpfDistVD)
+        , m_qsMesg(pFilterInfo->qsFormular)
+        , m_iPriPtIdx(-1)
+        , m_iFltIdx(pFilterInfo->uFilterIndex) {
+    if (!pFilterInfo->bTrackingOn) {
+        m_emtType = CLUSTER_POINT;
+    }
+    else {
+        m_emtType = TRAJECTORY;
+    }
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //

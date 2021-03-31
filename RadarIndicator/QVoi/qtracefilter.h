@@ -33,11 +33,13 @@ public:
     virtual QCoreTraceFilter::sFilterState getState(double dTime);
     virtual bool isStale(double dTime);
     virtual bool isTrackingOn() { return m_bTrackingOn; }
+    virtual quint32 filterId() { return m_uFilterId; }
 
 protected:
     Matrix m_mH;
     bool m_bTrackingOn;
     QString m_qsFilterName;
+    quint32 m_uFilterId;
 
 public:
     // virtual void print();

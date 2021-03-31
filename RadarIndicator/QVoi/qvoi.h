@@ -19,25 +19,34 @@ using namespace std;
 
 class QCoreTraceFilter;
 
+struct sVoiFilterInfo {
+    QPointF qpfDistVD;
+    QString qsFormular;
+    bool bTrackingOn;
+    quint32 uFilterIndex;
+};
+struct sVoiPrimaryPointInfo {
+    QPointF qpfDistVD;
+    QString qsFormular;
+    quint32 uPriPtIndex;
+    quint32 uFilterIndex;
+};
+
 class QVoi:public QObject {
     Q_OBJECT
 public:
-    struct sFilterInfo {
-        QPointF qpfDistVD;
-        QString qsFormular;
-    };
-
     explicit QVoi(QObject *parent = 0);
     ~QVoi();
 
-    void listFilters(QList<struct sFilterInfo> & qlFiltersInfo);
-    int processPrimaryPoint(
+    void listFilters(QList<struct sVoiFilterInfo> & qlFiltersInfo);
+    void processPrimaryPoint(
             double dTsExact, // exact time of strobe exection (seconds)
             double dR,       // distance (meters)
             double dElRad,   // elevation (radians)
             double dAzRad,   // azimuth (radians)
             double dV_D,     // Doppler velocity (m/s)
-            double dVDWin);  // Doppler velocity window (m/s)
+            double dVDWin,   // Doppler velocity window (m/s)
+            struct sVoiPrimaryPointInfo &sPriPtInfoOut);
 
     Q_INVOKABLE void addTab(QObject *pPropDlg, QObject *pPropTabs, int iIdx);
     Q_INVOKABLE void propChanged(QObject *pPropDlg);

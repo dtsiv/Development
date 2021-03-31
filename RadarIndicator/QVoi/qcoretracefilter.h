@@ -17,6 +17,7 @@ public:
         double dVDWin;   // Doppler velocity window, m/s
         double dTs;      // measurement time, seconds
         QTraceFilter *pFlt;
+        quint32 uFilterIndex;
         sPrimaryPt();
         sPrimaryPt(const sPrimaryPt &other);
         virtual ~sPrimaryPt(){}
@@ -62,7 +63,7 @@ private:
     static double m_dCorrSignif;
     void initCorrThresh();
     double twoSidedStudentProbability(double dThreshold, int iDegreesOfFreedomN);
-    static QList<QTraceFilter *>m_qlFilters;
+    static QMap<quint32,QTraceFilter *>m_qmFilters;
     friend class QVoi;
 
 public:

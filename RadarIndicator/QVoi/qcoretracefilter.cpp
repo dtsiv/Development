@@ -2,6 +2,7 @@
 #include "qtracefilter.h"
 #include "kalextended.h"
 #include "qsimplefilter.h"
+#include "qexceptiondialog.h"
 
 #include <string>
 #include <fstream>
@@ -11,7 +12,7 @@
 using namespace std;
 
 bool QCoreTraceFilter::bInit=false;
-QList<QTraceFilter *> QCoreTraceFilter::m_qlFilters;
+QMap<quint32,QTraceFilter *> QCoreTraceFilter::m_qmFilters;
 QList<struct QCoreTraceFilter::sPrimaryPt *> QCoreTraceFilter::m_qlAllPriPts;
 double QCoreTraceFilter::m_dCorrSignif = -1.0e0;
 QMap<int,double> QCoreTraceFilter::m_qmCorrThresh;
@@ -22,13 +23,15 @@ int QCoreTraceFilter::m_iMaxClusterSz = -1;
 //
 //========================================================================
 QCoreTraceFilter::sPrimaryPt::sPrimaryPt()
-        : pFlt(NULL) {
+        : pFlt(NULL)
+        , uFilterIndex(0) {
 }
 //========================================================================
 //
 //========================================================================
 QCoreTraceFilter::sPrimaryPt::sPrimaryPt(const sPrimaryPt &other)
-        : pFlt(NULL) {
+        : pFlt(NULL)
+        , uFilterIndex(0) {
     dR     = other.dR;
     dElRad = other.dElRad;
     dAzRad = other.dAzRad;
@@ -75,12 +78,15 @@ int QCoreTraceFilter::addPrimaryPoint(struct sPrimaryPt &primaryPoint) {
     T::sPrimaryPt *pp=new T::sPrimaryPt(primaryPoint);
     m_qlAllPriPts.append(pp);
     // get primary point proximity to each filter state
-    if (m_qlFilters.size()) {
+    if (m_qmFilters.size()) {
         QList<int> qlFltIndxsLocal;
         QList<double> qlDist;
-        for (int i=0; i<m_qlFilters.size(); i++) {
-            qlFltIndxsLocal<<i;
-            qlDist<<m_qlFilters.at(i)->calcProximity(pp);
+        QList<quint32> qlKeys=m_qmFilters.keys();
+        for (int i=0; i<qlKeys.size(); i++) {
+            qlFltIndxsLocal<<qlKeys.at(i);
+            QTraceFilter *pFilter=m_qmFilters.value(qlKeys.at(i),NULL);
+            if (!pFilter) throw RmoException("QCoreTraceFilter::addPrimaryPoint() pFilter is NULL");
+            qlDist<<pFilter->calcProximity(pp);
         }
         // sort qlDist ascending together with qlFltIndxsLocal
         for (int i=0; i<qlFltIndxsLocal.size()-1; i++) {
@@ -94,31 +100,41 @@ int QCoreTraceFilter::addPrimaryPoint(struct sPrimaryPt &primaryPoint) {
         // eat the primary point starting from closest active filter
         QListIterator<int> i(qlFltIndxsLocal);
         while (i.hasNext()) {
-            QTraceFilter *pFilter=m_qlFilters.at(i.next());
-            if (pFilter->isTrackingOn()) {
-                if (pFilter->eatPrimaryPoint(iPtIdx)) return iPtIdx;
+            quint32 uFilterIndex=i.next();
+            QTraceFilter *pFilter=m_qmFilters.value(uFilterIndex,NULL);
+            if (pFilter && pFilter->isTrackingOn()) {
+                if (pFilter->eatPrimaryPoint(iPtIdx)) {
+                    pp->uFilterIndex=uFilterIndex;
+                    return iPtIdx;
+                }
             }
         }
         i.toFront();
         // eat the primary point starting from closest cluster
         while (i.hasNext()) {
-            QTraceFilter *pFilter=m_qlFilters.at(i.next());
-            if (!pFilter->isTrackingOn()) {
-                if (pFilter->eatPrimaryPoint(iPtIdx)) return iPtIdx;
+            quint32 uFilterIndex=i.next();
+            QTraceFilter *pFilter=m_qmFilters.value(uFilterIndex,NULL);
+            if (pFilter && !pFilter->isTrackingOn()) {
+                if (pFilter->eatPrimaryPoint(iPtIdx)) {
+                    pp->uFilterIndex=uFilterIndex;
+                    return iPtIdx;
+                }
             }
         }
     }
     // If neither filter accepts it - create new (empty) filter for this primary point
     T *pNewFilter = new T(*this);
-    m_qlFilters.append(pNewFilter);
+    quint32 uFilterIndex=pNewFilter->filterId();
+    m_qmFilters.insert(uFilterIndex,pNewFilter);
     pNewFilter->eatPrimaryPoint(iPtIdx); // the empty filter accepts it for sure
+    pp->uFilterIndex=uFilterIndex;
     return iPtIdx;
 }
 //========================================================================
 //
 //========================================================================
 void QCoreTraceFilter::cleanup() {
-    while (m_qlFilters.count()) delete m_qlFilters.takeLast();
+    while (m_qmFilters.count()) delete m_qmFilters.take(m_qmFilters.lastKey());
 }
 //========================================================================
 //

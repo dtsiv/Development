@@ -11,6 +11,7 @@
 #include "qformular.h"
 #include "qtargetmarker.h"
 #include "mapwidget.h"
+#include "qvoi.h"
 
 #define QTARGETSMAP_PROP_TAB_CAPTION    "Indicator grid"
 #define QTARGETSMAP_DOC_CAPTION         "Targets map"
@@ -76,7 +77,8 @@ private slots:
 
 public:
     MapWidget *getMapInstance();
-    void addTargetMarker(QTargetMarker* pTargetMarker);
+    void addTargetMarker(const struct sVoiPrimaryPointInfo &sPriPtInfo);
+    void addTargetMarker(struct sVoiFilterInfo *pFltInfo);
     void clearMarkers();
     bool getFirstFormular(QPoint &qpPos);
     void convertSkipDopplerList(QMultiMap<int,int> &qmmInOut, QString &qsInOut, bool bEncode = false);

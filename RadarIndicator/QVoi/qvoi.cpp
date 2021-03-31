@@ -67,13 +67,14 @@ void QVoi::propChanged(QObject *pPropDlg) {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-int QVoi::processPrimaryPoint(
+void QVoi::processPrimaryPoint(
         double dTsExact, // exact time of strobe exection (seconds)
         double dR,       // distance (meters)
         double dElRad,   // elevation (radians)
         double dAzRad,   // azimuth (radians)
         double dV_D,     // Doppler velocity (m/s)
-        double dVDWin) { // Doppler velocity window (m/s)
+        double dVDWin,   // Doppler velocity window (m/s)
+        struct sVoiPrimaryPointInfo &sPriPtInfoOut) {  // output structure
     // update current time (seconds)
     m_dTcurrent = (dTsExact > m_dTcurrent) ? dTsExact : m_dTcurrent;
     // call addPrimaryPoint() method of the singleton
@@ -84,30 +85,38 @@ int QVoi::processPrimaryPoint(
     newPrimaryPoint.dAzRad = dAzRad;
     newPrimaryPoint.dV_D = dV_D;
     newPrimaryPoint.dVDWin = dVDWin;
-    return m_coreInstance.addPrimaryPoint(newPrimaryPoint);
+    quint32 uPriPtIndex=m_coreInstance.addPrimaryPoint(newPrimaryPoint);
+    // fill (partially) the output structure
+    sPriPtInfoOut.uPriPtIndex=uPriPtIndex;
+    sPriPtInfoOut.uFilterIndex = newPrimaryPoint.uFilterIndex;
+    sPriPtInfoOut.qpfDistVD=QPointF(dR,dV_D);
+    return;
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void QVoi::listFilters(QList<struct QVoi::sFilterInfo> &qlFiltersInfo) {
-
-    int i1=0;
-    while (i1 < m_coreInstance.m_qlFilters.count()) {
-        if (m_coreInstance.m_qlFilters.at(i1)->isStale(m_dTcurrent)) {
-            delete m_coreInstance.m_qlFilters.takeAt(i1);
-        }
-        else {  // only need to advance if m_qlFilters.at(i1) did not change
-            i1++;
+void QVoi::listFilters(QList<struct sVoiFilterInfo> &qlFiltersInfo) {
+    // kill stale filters
+    QListIterator<quint32> i1(m_coreInstance.m_qmFilters.keys());
+    while (i1.hasNext()) {
+        quint32 uIndex=i1.next();
+        QTraceFilter *pFilter = m_coreInstance.m_qmFilters.value(uIndex,NULL);
+        if (pFilter && pFilter->isStale(m_dTcurrent)) {
+            delete m_coreInstance.m_qmFilters.take(uIndex);
         }
     }
-    QListIterator<QTraceFilter *> i(m_coreInstance.m_qlFilters);
+    // list the remaining filters and return the list as qlFiltersInfo
+    QMapIterator<quint32,QTraceFilter *> i(m_coreInstance.m_qmFilters);
     while (i.hasNext()) {
-        QTraceFilter *pFilter = i.next();
-        if (!pFilter->isTrackingOn()) continue;
-        QCoreTraceFilter::sFilterState sState = pFilter->getState(m_dTcurrent);
-        struct QVoi::sFilterInfo sInfo;
+        i.next();
+        QTraceFilter *pFilter = i.value();
+        quint32 uIndex=i.key();
+        QCoreTraceFilter::sFilterState & sState = pFilter->getState(m_dTcurrent);
+        struct sVoiFilterInfo sInfo;
         sInfo.qpfDistVD=sState.qpfDistVD;
-        sInfo.qsFormular=sState.qsName; // maybe some more here
+        sInfo.qsFormular=sState.qsName;
+        sInfo.bTrackingOn=pFilter->isTrackingOn();
+        sInfo.uFilterIndex=uIndex;
         qlFiltersInfo.append(sInfo);
     }
 }

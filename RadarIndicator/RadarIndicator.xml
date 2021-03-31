@@ -2,7 +2,7 @@
 <PARAMETERS>
     <ActivePropertyPage>4</ActivePropertyPage>
     <CarrierFreqMHz>9400</CarrierFreqMHz>
-    <DistanceOriginM>617.42869771721416</DistanceOriginM>
+    <DistanceOriginM>-402.59905295601783</DistanceOriginM>
     <FormularContent>AQEBAQEBAAAAAQAAAA==</FormularContent>
     <GridStepAdapt>true</GridStepAdapt>
     <GridStepDistanceM>320</GridStepDistanceM>
@@ -12,7 +12,7 @@
     <SQLiteFile>../DATA/chronicaparser_20210210_chk.sqlite3</SQLiteFile>
     <SkipDoppler>IDUgIDM2MQogNSAgMzkyCiA1ICAxMjAKIDUgIDEyMQogNSAgMzkxCiA1ICAxNTEKIDYgIDEzNQogNiAgMTM2</SkipDoppler>
     <TSamplingMicroSec>0.12</TSamplingMicroSec>
-    <VelOriginMpS>1397.3234068675392</VelOriginMpS>
+    <VelOriginMpS>1123.5141589299935</VelOriginMpS>
     <antennaSizeAz>0.6</antennaSizeAz>
     <antennaSizeEl>0.9</antennaSizeEl>
     <antennaWeight>0</antennaWeight>

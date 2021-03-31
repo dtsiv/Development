@@ -8,12 +8,21 @@
 #include <QPainter>
 
 class QFormular;
+struct sVoiFilterInfo;
+struct sVoiPrimaryPointInfo;
 
 class QTargetMarker : public QObject
 {
     Q_OBJECT
 public:
-    explicit QTargetMarker(QPointF qpTarPhys, QString qsMesg = QString(), QObject *parent = 0);
+    enum eMarkerType {
+        PRIMARY_POINT,
+        CLUSTER_POINT,
+        TRAJECTORY
+    };
+
+    explicit QTargetMarker(const sVoiPrimaryPointInfo &sPriPtInfo);
+    explicit QTargetMarker(sVoiFilterInfo *pFilterInfo);
     ~QTargetMarker();
     QPointF tar();
     bool hasFormular();
@@ -22,7 +31,9 @@ public:
     QString &mesgString();
 
     // index of the primary point in module QVoi
-    int m_iVoiIdx;
+    int m_iPriPtIdx;
+    int m_iFltIdx;
+    enum eMarkerType m_emtType;
 
 signals:
 

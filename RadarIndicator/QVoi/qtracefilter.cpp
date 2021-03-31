@@ -20,7 +20,8 @@ QTraceFilter::QTraceFilter(const QCoreTraceFilter &other)
         : QCoreTraceFilter(other)
         , pPriPtNULL(NULL)
         , m_bTrackingOn(false) {
-    m_qsFilterName=QString("F%1").arg(m_iNextFilterNumber++,2,10,QChar('0'));
+    m_uFilterId=m_iNextFilterNumber++;
+    m_qsFilterName=QString("F%1").arg(m_uFilterId,2,10,QChar('0'));
 //    static bool bInit=false;
 //    if (!bInit) {
 //        qDebug() << "Init: QTraceFilter::QTraceFilter(const QCoreTraceFilter &other)";

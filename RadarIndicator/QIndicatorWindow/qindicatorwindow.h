@@ -11,7 +11,7 @@
 #include "qproppages.h"
 #include "qsqlmodel.h"
 #include "qregfileparser.h"
-#include "qtargetsmap.h"
+// #include "qtargetsmap.h"
 #include "qpoi.h"
 #include "qvoi.h"
 #include "qstopper.h"
@@ -24,6 +24,7 @@
 #define STATUS_MESSAGE_PADDING                  20
 
 class QPulseSamplingDlg;
+class QTargetsMap;
 
 class QIndicatorWindow : public QMainWindow
 {

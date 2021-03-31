@@ -1,5 +1,6 @@
 #include "qindicatorwindow.h"
 #include "qexceptiondialog.h"
+#include "qtargetsmap.h"
 
 #include "nr.h"
 using namespace std;

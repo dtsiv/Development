@@ -2,6 +2,7 @@
 #include "qinisettings.h"
 #include "qexceptiondialog.h"
 #include "qindicatorwindow.h"
+#include "qvoi.h"
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -717,10 +718,20 @@ void QTargetsMap::zoomMap(MapWidget *pMapWidget, int iX, int iY, bool bZoomIn /*
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void QTargetsMap::addTargetMarker(QTargetMarker* pTargetMarker) {
-    if (pTargetMarker) m_qlTargets.append(pTargetMarker);
+void QTargetsMap::addTargetMarker(const struct sVoiPrimaryPointInfo &sPriPtInfo) {
+    QTargetMarker *pTargetMarker=new QTargetMarker(sPriPtInfo);
+    m_qlTargets.append(pTargetMarker);
     emit doUpdate();
 }
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+void QTargetsMap::addTargetMarker(struct sVoiFilterInfo *pFltInfo) {
+    QTargetMarker *pTargetMarker=new QTargetMarker(pFltInfo);
+    m_qlTargets.append(pTargetMarker);
+    emit doUpdate();
+}
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -13,6 +13,9 @@ class QVoi;
 class QSqlModel;
 class QTargetsMap;
 
+struct sVoiFilterInfo;
+struct sVoiPrimaryPointInfo;
+
 class QSimuMgr {
 public:
     QSimuMgr(QIndicatorWindow *pOwner);
@@ -27,7 +30,7 @@ public:
     void getAngles();
     void phaseCoherenceTest();
     void dataFileOutput();
-    void addTargetMarker();
+    void addPrimaryPointMarker();
     void updateStatusInfo();
     void traceFilter();
     void filterMarkers();
@@ -69,7 +72,7 @@ private:
 	double *m_pBeamAmplRe;
 	double *m_pBeamAmplIm;
 	bool m_bAnglesOk;
-    int m_iVoiIdx;
+    static struct sVoiPrimaryPointInfo m_sPriPtInfo;
     qint64 m_iNoisemapGUID;
     QTextStream m_tsPhaseCoherence;
     QFile m_qfPhaseCoherence;

@@ -3,6 +3,7 @@
 #include "qexceptiondialog.h"
 #include "qregfileparser.h"
 #include "qvoi.h"
+#include "qtargetsmap.h"
 
 #include <cmath>
 
@@ -23,6 +24,8 @@ double getArg(double dRe, double dIm, bool &bOk) {
     return atan2(dIm,dRe);
 }
 #endif
+
+struct sVoiPrimaryPointInfo QSimuMgr::m_sPriPtInfo;
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
@@ -281,7 +284,7 @@ void QSimuMgr::getectTargets() {
             dataFileOutput();
 
             // for the current target: add target marker to QTargetsMap
-            addTargetMarker();
+            addPrimaryPointMarker();
 
         } // for (int iTarget = 0; iTarget < nTargets; iTarget++) ...
     } // if (m_pPoi->detectTargets()) ...
@@ -396,19 +399,22 @@ void QSimuMgr::dataFileOutput() {
 void QSimuMgr::traceFilter() {
     double dVDWin = m_pPoi->m_dVelCoef*m_pPoi->m_NFFT;         // Doppler velocity window (m/s)
 
-    m_iVoiIdx = m_pVoi->processPrimaryPoint(
+    m_pVoi->processPrimaryPoint(
         m_dTsExact,
         m_qpfWeighted.x(),
         m_dElevationRad,
         m_dAzimuthRad,
         m_qpfWeighted.y(),
-        dVDWin);
+        dVDWin,
+        m_sPriPtInfo);
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void QSimuMgr::addTargetMarker() {
-    QString qsLegend;
+void QSimuMgr::addPrimaryPointMarker() {
+    // fill the formular
+    QString &qsLegend=m_sPriPtInfo.qsFormular;
+    qsLegend.clear();
     QString qsStrobeNo=QString("S:%1").arg(m_uStrobeNo);
     // Weinberg 2017 parameter
     // SNR-related parameter: dTau = dFrac/(0.5*n_noise);
@@ -476,9 +482,7 @@ void QSimuMgr::addTargetMarker() {
         qsLegend+=qsItemText;
     }
     if (qsLegend.isEmpty()) qsLegend=QString("N/A");
-//    QTargetMarker *pTarMark = new QTargetMarker(m_qpfWeighted,qsLegend);
-//    pTarMark->m_iVoiIdx = this->m_iVoiIdx;
-//    m_pTargetsMap->addTargetMarker(pTarMark);
+    m_pTargetsMap->addTargetMarker(m_sPriPtInfo);
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
@@ -641,14 +645,12 @@ void QSimuMgr::restart() {
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void QSimuMgr::filterMarkers() {
-    QList <QVoi::sFilterInfo> qlFiltersInfo;
+    QList <sVoiFilterInfo> qlFiltersInfo;
     m_pVoi->listFilters(qlFiltersInfo);
-    QListIterator<QVoi::sFilterInfo> i(qlFiltersInfo);
+    QListIterator<sVoiFilterInfo> i(qlFiltersInfo);
     while (i.hasNext()) {
-        QVoi::sFilterInfo sInfo = i.next();
-        QTargetMarker *pTarMark = new QTargetMarker(sInfo.qpfDistVD,sInfo.qsFormular);
-        pTarMark->m_iVoiIdx = 0;
-        m_pTargetsMap->addTargetMarker(pTarMark);
+        sVoiFilterInfo sInfo = i.next();
+        m_pTargetsMap->addTargetMarker(&sInfo);
     }
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
