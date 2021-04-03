@@ -441,6 +441,7 @@ void QSimuMgr::addPrimaryPointMarker() {
     QString qsSigType=QString("Ty:%1").arg(m_pPoi->m_iSigType);
     QString qsProbFA=QString("FA:%1").arg(m_pPoi->m_dFalseAlarmProb,0,'e',0);
     QString qsTarSumDB=QString("Su:%1").arg(m_d_y2mc_sum,0,'f',0);
+    QString qsFltIdx=QString("Fl:%1").arg(m_sPriPtInfo.uFilterIndex);
     QString qsTarIDelay=QString("L:%1").arg(m_iDelay);
     int nFormularItems=m_pTargetsMap->m_qlFormularItems.size();
     for (int iItem=0; iItem<nFormularItems; iItem++) {
@@ -475,6 +476,8 @@ void QSimuMgr::addPrimaryPointMarker() {
                 qsItemText = qsTarSumDB; break;
             case QTARGETSMAP_FORMULAR_ITEM_IDELAY :
                 qsItemText = qsTarIDelay; break;
+            case QTARGETSMAP_FORMULAR_ITEM_FLTIDX :
+                qsItemText = qsFltIdx; break;
             default:
                 continue;
         }

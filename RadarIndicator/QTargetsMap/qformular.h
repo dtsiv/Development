@@ -25,7 +25,7 @@ public:
                        QObject *parent = 0);
 
     void drawFormular(QPainter &painter, QTransform &t);
-    bool selectTarg(QList<QTargetMarker*> ql_Targets, QTransform &t);
+    bool selectTarg(const QList<QTargetMarker*> &ql_Targets, QTransform &t);
     void setStale();
     bool isStale();
     static const quint64 m_uFormularLifetime;

@@ -94,6 +94,14 @@ void MapWidget::resizeGL([[maybe_unused]]int w, [[maybe_unused]]int h) {
         repaint();
         return;
     }
+    // free mouse move, no associated action yet
+    if (!(m_bMapDragging || m_bFormularMoving)
+            && pe->button()==Qt::NoButton
+            && pe->modifiers()==Qt::NoModifier) {
+        quint32 uFilterIdxHighlighted = m_pOwner->m_uFilterIdxHighlighted;
+        m_pOwner->getFirstMarker(pe->pos());
+        if (m_pOwner->m_uFilterIdxHighlighted != uFilterIdxHighlighted) repaint();
+    }
     // mark mouse last position
     if (!m_pOwner->m_pMouseStill) m_pOwner->m_pMouseStill = new struct QFormular::sMouseStillPos;
     m_pOwner->m_pMouseStill->pos = pe->pos();

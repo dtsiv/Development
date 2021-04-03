@@ -104,7 +104,7 @@ int QCoreTraceFilter::addPrimaryPoint(struct sPrimaryPt &primaryPoint) {
             QTraceFilter *pFilter=m_qmFilters.value(uFilterIndex,NULL);
             if (pFilter && pFilter->isTrackingOn()) {
                 if (pFilter->eatPrimaryPoint(iPtIdx)) {
-                    pp->uFilterIndex=uFilterIndex;
+                    primaryPoint.uFilterIndex=pp->uFilterIndex=uFilterIndex;
                     return iPtIdx;
                 }
             }
@@ -116,7 +116,7 @@ int QCoreTraceFilter::addPrimaryPoint(struct sPrimaryPt &primaryPoint) {
             QTraceFilter *pFilter=m_qmFilters.value(uFilterIndex,NULL);
             if (pFilter && !pFilter->isTrackingOn()) {
                 if (pFilter->eatPrimaryPoint(iPtIdx)) {
-                    pp->uFilterIndex=uFilterIndex;
+                    primaryPoint.uFilterIndex=pp->uFilterIndex=uFilterIndex;
                     return iPtIdx;
                 }
             }
@@ -127,7 +127,7 @@ int QCoreTraceFilter::addPrimaryPoint(struct sPrimaryPt &primaryPoint) {
     quint32 uFilterIndex=pNewFilter->filterId();
     m_qmFilters.insert(uFilterIndex,pNewFilter);
     pNewFilter->eatPrimaryPoint(iPtIdx); // the empty filter accepts it for sure
-    pp->uFilterIndex=uFilterIndex;
+    primaryPoint.uFilterIndex=pp->uFilterIndex=uFilterIndex;
     return iPtIdx;
 }
 //========================================================================

@@ -35,7 +35,7 @@ void QFormular::setStale() {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-bool QFormular::selectTarg(QList<QTargetMarker*> qlTargets, QTransform &t) {
+bool QFormular::selectTarg(const QList<QTargetMarker*> &qlTargets, QTransform &t) {
     QList<double> qlDists;
     QList<double> qlIndxs;
     // if currently no targets detected - then skip
@@ -53,7 +53,6 @@ bool QFormular::selectTarg(QList<QTargetMarker*> qlTargets, QTransform &t) {
         for (int j=i+1; j<qlTargets.size(); j++) {
             if (qlDists.at(i) > qlDists.at(j)) {
                 qlDists.swap(i,j);
-                qlTargets.swap(i,j);
                 qlIndxs.swap(i,j);
             }
         }
@@ -61,7 +60,7 @@ bool QFormular::selectTarg(QList<QTargetMarker*> qlTargets, QTransform &t) {
     // smallest distance is too many pixels - skip
     for (int i=0; i<qlDists.size(); i++) {
         if (qlDists.at(i) > m_uFormularCutoffPix) return false;
-        QTargetMarker *pTargetMarker = qlTargets.at(i);
+        QTargetMarker *pTargetMarker = qlTargets.at(qlIndxs.at(i));
         if (pTargetMarker->hasFormular()) continue;
         pTargetMarker->setFormular(this);
         m_pTargetMarker = pTargetMarker;

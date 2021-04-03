@@ -88,19 +88,19 @@ bool QSimpleFilter::eatPrimaryPoint(int iPtIdx) {
         pPriPt->pFlt = this;
         m_qlCluster.append(iPtIdx);
         m_qlPriPts.append(iPtIdx);
-        qDebug() << QString("%1: new cluster #%4 R=%2 VD=%3")
-                                   .arg(pPriPt->dTs).arg(pPriPt->dR).arg(pPriPt->dV_D).arg(m_qsFilterName);
+        // qDebug() << QString("%1: new cluster #%4 R=%2 VD=%3")
+        //                           .arg(pPriPt->dTs).arg(pPriPt->dR).arg(pPriPt->dV_D).arg(m_qsFilterName);
         return true;
     }
     // from now on we can guarantee that pPriPt has type <QTraceFilter::sPrimaryPt*>
     if (!isInsideSpaceStrobe(pPriPt)) { // filter rejects this pt
         if (m_bTrackingOn) {
-            qDebug() << QString("%1: active filter #%4 rejected R=%2 VD=%3")
-                                       .arg(pPriPt->dTs).arg(pPriPt->dR).arg(pPriPt->dV_D).arg(m_qsFilterName);
+            // qDebug() << QString("%1: active filter #%4 rejected R=%2 VD=%3")
+            //                           .arg(pPriPt->dTs).arg(pPriPt->dR).arg(pPriPt->dV_D).arg(m_qsFilterName);
         }
         else {
-            qDebug() << QString("%1: cluster #%4 rejected R=%2 VD=%3")
-                                       .arg(pPriPt->dTs).arg(pPriPt->dR).arg(pPriPt->dV_D).arg(m_qsFilterName);
+            // qDebug() << QString("%1: cluster #%4 rejected R=%2 VD=%3")
+            //                            .arg(pPriPt->dTs).arg(pPriPt->dR).arg(pPriPt->dV_D).arg(m_qsFilterName);
         }
         return false;
     }
@@ -113,7 +113,7 @@ bool QSimpleFilter::eatPrimaryPoint(int iPtIdx) {
             return true;
         }
         else {
-            qDebug() << "QSimpleFilter::eatPrimaryPoint() filterStep failed";
+            // qDebug() << "QSimpleFilter::eatPrimaryPoint() filterStep failed";
             return false;
         }
     }
@@ -126,12 +126,12 @@ bool QSimpleFilter::eatPrimaryPoint(int iPtIdx) {
         return true;
     }
     if (m_bTrackingOn) {
-        qDebug() << QString("%1: active filter #%4, linear regression failed R=%2 VD=%3")
-                                   .arg(pPriPt->dTs).arg(pPriPt->dR).arg(pPriPt->dV_D).arg(m_qsFilterName);
+        // qDebug() << QString("%1: active filter #%4, linear regression failed R=%2 VD=%3")
+        //                            .arg(pPriPt->dTs).arg(pPriPt->dR).arg(pPriPt->dV_D).arg(m_qsFilterName);
     }
     else {
-        qDebug() << QString("%1: cluster #%4, linear regression failed R=%2 VD=%3")
-                                   .arg(pPriPt->dTs).arg(pPriPt->dR).arg(pPriPt->dV_D).arg(m_qsFilterName);
+        // qDebug() << QString("%1: cluster #%4, linear regression failed R=%2 VD=%3")
+        //                            .arg(pPriPt->dTs).arg(pPriPt->dR).arg(pPriPt->dV_D).arg(m_qsFilterName);
     }
     return false;
 }
@@ -163,7 +163,7 @@ bool QSimpleFilter::linearRegression(const struct sPrimaryPt *pPriPt) {
     }
     // cannot add point with same time dTs
     if (abs(pPriPt->dTs-qlT.last())<1.0e-6*dEPS) {
-        qDebug() << "Rejecting pt with same time " << pPriPt->dTs;
+        // qDebug() << "Rejecting pt with same time " << pPriPt->dTs;
         return false;
     }
     // append pPriPt to the lists
@@ -191,7 +191,7 @@ bool QSimpleFilter::linearRegression(const struct sPrimaryPt *pPriPt) {
     double dVX2=dVX*dVX; double dVY2=dVY*dVY; double dVZ2=dVZ*dVZ;
     double dV=sqrt(dVX2+dVY2+dVZ2);
     if (dV<dEPS) {
-        qDebug() << QString("%1: accepting pt with no motion").arg(pPriPt->dTs);
+        // qDebug() << QString("%1: accepting pt with no motion").arg(pPriPt->dTs);
         return true; // accept targets with no motion
     }
     double dnVX=dVX/dV; double dnVY=dVY/dV; double dnVZ=dVZ/dV;
@@ -215,8 +215,8 @@ bool QSimpleFilter::linearRegression(const struct sPrimaryPt *pPriPt) {
         double dCorrCoef=dRpT/dTsigma/sqrt(dRpsigma2);
         // reject low correlation -- IMPROVE with significance level!!!
         if (abs(dCorrCoef)<m_qmCorrThresh.value(N,2.0e0)) {
-            qDebug() << QString("%1: cluster #%2 Rejecting CorrCoef %3")
-                     .arg(pPriPt->dTs).arg(m_qsFilterName).arg(dCorrCoef);
+            // qDebug() << QString("%1: cluster #%2 Rejecting CorrCoef %3")
+            //          .arg(pPriPt->dTs).arg(m_qsFilterName).arg(dCorrCoef);
             return false;
         }
     }
@@ -245,14 +245,14 @@ bool QSimpleFilter::linearRegression(const struct sPrimaryPt *pPriPt) {
         }
 #endif
 //##################################################################
-        qDebug() << QString("%1: cluster #%2 Bind R=%3 VD=%4")
-                    .arg(m_pFS->dT).arg(m_qsFilterName).arg(pPriPt->dR).arg(pPriPt->dV_D);
+        // qDebug() << QString("%1: cluster #%2 Bind R=%3 VD=%4")
+        //             .arg(m_pFS->dT).arg(m_qsFilterName).arg(pPriPt->dR).arg(pPriPt->dV_D);
         m_bTrackingOn=true;
     }
-    qDebug() << QString("%4: cluster #%5 newpt N=%1 R(%2) V_D(%3)")
-                .arg(N).arg(pPriPt->dR)
-                .arg(pPriPt->dV_D)
-                .arg(pPriPt->dTs).arg(m_qsFilterName);
+    // qDebug() << QString("%4: cluster #%5 newpt N=%1 R(%2) V_D(%3)")
+    //            .arg(N).arg(pPriPt->dR)
+    //            .arg(pPriPt->dV_D)
+    //            .arg(pPriPt->dTs).arg(m_qsFilterName);
     return true;
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -266,18 +266,18 @@ bool QSimpleFilter::isInsideSpaceStrobe(const struct sPrimaryPt *pPriPt) {
     // cut distant points immediately
     if (dDeltaR>100.0e0) {
         if (m_bTrackingOn) {
-            qDebug()
-                << QString("%1: active filter #%5 rejected pt @ %4 meters away R=%2 VD=%3")
-                   .arg(pPriPt->dTs).arg(pPriPt->dR)
-                   .arg(pPriPt->dV_D)
-                   .arg(dDeltaR).arg(m_qsFilterName);
+//            qDebug()
+//                << QString("%1: active filter #%5 rejected pt @ %4 meters away R=%2 VD=%3")
+//                   .arg(pPriPt->dTs).arg(pPriPt->dR)
+//                   .arg(pPriPt->dV_D)
+//                   .arg(dDeltaR).arg(m_qsFilterName);
         }
         else {
-            qDebug()
-                << QString("%1: cluster #%5 rejected pt @ %4 meters away R=%2 VD=%3")
-                   .arg(pPriPt->dTs).arg(pPriPt->dR)
-                   .arg(pPriPt->dV_D)
-                   .arg(dDeltaR).arg(m_qsFilterName);
+//            qDebug()
+//                << QString("%1: cluster #%5 rejected pt @ %4 meters away R=%2 VD=%3")
+//                   .arg(pPriPt->dTs).arg(pPriPt->dR)
+//                   .arg(pPriPt->dV_D)
+//                   .arg(dDeltaR).arg(m_qsFilterName);
         }
         return false;
     }
@@ -296,10 +296,10 @@ bool QSimpleFilter::isInsideSpaceStrobe(const struct sPrimaryPt *pPriPt) {
             double dDeltaV = remainder(pPriPt->dV_D - dV_Dlast, pPriPt->dVDWin);
             dDeltaV = abs(dDeltaV)/pPriPt->dVDWin;
             if (dDeltaV < 0.1) {
-                if (m_qlCluster.size()==2) qDebug() << QString("%1: cluster #%4 of two pts @ dist %2, V_D=%3")
-                                   .arg(pPriPt->dTs)
-                                   .arg(pPriPt->dR)
-                                   .arg(pPriPt->dV_D).arg(m_qsFilterName);
+//                if (m_qlCluster.size()==2) qDebug() << QString("%1: cluster #%4 of two pts @ dist %2, V_D=%3")
+//                                   .arg(pPriPt->dTs)
+//                                   .arg(pPriPt->dR)
+//                                   .arg(pPriPt->dV_D).arg(m_qsFilterName);
                 return true;
             }
         }
@@ -320,7 +320,7 @@ bool QSimpleFilter::isInsideSpaceStrobe(const struct sPrimaryPt *pPriPt) {
         if (dDeltaV < 0.1) {
             return true;
         }
-        qDebug() << QString("%1: #%3 skipping dDeltaV=%2").arg(pPriPt->dTs).arg(dDeltaV).arg(m_qsFilterName);
+//        qDebug() << QString("%1: #%3 skipping dDeltaV=%2").arg(pPriPt->dTs).arg(dDeltaV).arg(m_qsFilterName);
     }
     // compare Doppler velocity with the filter state
     double xx=m_pFS->dX;
@@ -338,12 +338,12 @@ bool QSimpleFilter::isInsideSpaceStrobe(const struct sPrimaryPt *pPriPt) {
         return true;
     }
     if (m_bTrackingOn) {
-        qDebug() << QString("%1: Traj #%6 rejects dDeltaV=%2 (%4 - %3 %% %5)")
-                    .arg(pPriPt->dTs)
-                    .arg(dDeltaV)
-                    .arg(dVr)
-                    .arg(pPriPt->dV_D)
-                    .arg(pPriPt->dVDWin).arg(m_qsFilterName);
+//        qDebug() << QString("%1: Traj #%6 rejects dDeltaV=%2 (%4 - %3 %% %5)")
+//                    .arg(pPriPt->dTs)
+//                    .arg(dDeltaV)
+//                    .arg(dVr)
+//                    .arg(pPriPt->dV_D)
+//                    .arg(pPriPt->dVDWin).arg(m_qsFilterName);
     }
 
     // qDebug() << "Rejecting space strobe: " << dDeltaR << " Vold " << dVn << " Vnew " << pPriPt->dV_D << " dDeltaV=" << dDeltaV;

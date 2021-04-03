@@ -31,6 +31,7 @@ QTargetsMap::QTargetsMap(QIndicatorWindow * pOwner /* = 0 */)
          , m_pOwner(pOwner)
          , m_pMouseStill(NULL)
          , m_uTimerMSecs(0)
+         , m_uFilterIdxHighlighted(0)
          , m_bAdaptiveGridStep(false)
          , m_pMovingFormular(NULL) {
     QIniSettings &iniSettings = QIniSettings::getInstance();
@@ -66,6 +67,7 @@ QTargetsMap::QTargetsMap(QIndicatorWindow * pOwner /* = 0 */)
     sfiCurrent.uRefCode = QTARGETSMAP_FORMULAR_ITEM_TARVELMPS; sfiCurrent.qsTitle = "Velocity (mps)"; sfiCurrent.bEnabled = false; m_qlFormularItems << sfiCurrent;
     sfiCurrent.uRefCode = QTARGETSMAP_FORMULAR_ITEM_SIGTYPE; sfiCurrent.qsTitle = "Type of signal"; sfiCurrent.bEnabled = false; m_qlFormularItems << sfiCurrent;
     sfiCurrent.uRefCode = QTARGETSMAP_FORMULAR_ITEM_TARPROBFA; sfiCurrent.qsTitle = "Probability FA"; sfiCurrent.bEnabled = false; m_qlFormularItems << sfiCurrent;
+    sfiCurrent.uRefCode = QTARGETSMAP_FORMULAR_ITEM_FLTIDX; sfiCurrent.qsTitle = "Filter index"; sfiCurrent.bEnabled = false; m_qlFormularItems << sfiCurrent;
     QByteArray baDefaultFormularContent;
     baDefaultFormularContent.resize(m_qlFormularItems.size()*sizeof(quint8));
     quint8 *pbEnabled;
@@ -100,6 +102,7 @@ QTargetsMap::~QTargetsMap() {
         delete m_pSafeParams;
         m_pSafeParams = 0;
     }
+    m_qmFltCurrMarker.clear();
     while (m_qlTargets.count()) delete m_qlTargets.takeLast();
     // save module settings
     QIniSettings &iniSettings = QIniSettings::getInstance();
@@ -384,7 +387,9 @@ void QTargetsMap::mapPaintEvent(MapWidget *pMapWidget, [[maybe_unused]]QPaintEve
 
     // target markers
     for (int i=0; i<m_qlTargets.size(); i++) {
-        m_qlTargets.at(i)->drawMarker(painter,m_transform);
+        QTargetMarker *pMarker = m_qlTargets.at(i);
+        bool bHighlighted = (pMarker->m_uFilterIdx==m_uFilterIdxHighlighted);
+        pMarker->drawMarker(painter,m_transform,bHighlighted);
     }
 
     // formulars
@@ -728,6 +733,18 @@ void QTargetsMap::addTargetMarker(const struct sVoiPrimaryPointInfo &sPriPtInfo)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void QTargetsMap::addTargetMarker(struct sVoiFilterInfo *pFltInfo) {
     QTargetMarker *pTargetMarker=new QTargetMarker(pFltInfo);
+    // index of traj point new marker - used to monitor current state of filter
+    quint32 uIdxNewMarker = m_qlTargets.size();
+    // if this trajectory appeared before - update its current state
+    quint32 uFilterIndex = pFltInfo->uFilterIndex;
+    if (m_qmFltCurrMarker.contains(uFilterIndex)) {
+        quint32 uIdxMarker = m_qmFltCurrMarker.value(uFilterIndex);
+        if (uIdxMarker < (quint32)m_qlTargets.size()) { // previous leader marker for traj
+            m_qlTargets.at(uIdxMarker)->clearNewestFlag();
+        }
+    }
+    // current leader marker for traj - insert with replacement!
+    m_qmFltCurrMarker.insert(uFilterIndex,uIdxNewMarker);
     m_qlTargets.append(pTargetMarker);
     emit doUpdate();
 }
@@ -737,6 +754,7 @@ void QTargetsMap::addTargetMarker(struct sVoiFilterInfo *pFltInfo) {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void QTargetsMap::clearMarkers() {
     // qDebug() << "clearMarkers() called";
+    m_qmFltCurrMarker.clear();
     while (m_qlTargets.count()) delete m_qlTargets.takeLast();
     emit doUpdate();
 }
@@ -750,6 +768,42 @@ bool QTargetsMap::getFirstFormular(QPoint &qpPos) {
         if (pFormular->contains(qpPos)) m_pMovingFormular = pFormular;
     }
     return (m_pMovingFormular != NULL);
+}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+bool QTargetsMap::getFirstMarker(QPoint &qpPos) {
+    QList<double> qlDists;
+    QList<double> qlIndxs;
+
+    // if currently no targets detected - then skip
+    if (!m_qlTargets.size()) return false;
+    // calculate all dists (in pixels) from targets to (m_dMouseDPhys,m_dMouseVPhys)
+    for (int i=0; i<m_qlTargets.size(); i++) {
+        QPointF qpTar = m_qlTargets.at(i)->tar();
+        QPoint qpTarPix = (qpTar*m_transform).toPoint();
+        qpTarPix -= qpPos;
+        qlDists << qpTarPix.manhattanLength();
+        qlIndxs << i;
+    }
+    // sort the distances
+    for (int i=0; i<qlDists.size()-1; i++) {
+        for (int j=i+1; j<qlDists.size(); j++) {
+            if (qlDists.at(i) > qlDists.at(j)) {
+                qlDists.swap(i,j);
+                qlIndxs.swap(i,j);
+            }
+        }
+    }
+    // smallest distance is too many pixels - skip
+    for (int i=0; i<qlDists.size(); i++) {
+        if (qlDists.at(i) > 10) break;
+        QTargetMarker *pTargetMarker = m_qlTargets.at(qlIndxs.at(i));
+        m_uFilterIdxHighlighted = pTargetMarker->m_uFilterIdx;
+        return true;
+    }
+    m_uFilterIdxHighlighted = 0;
+    return false;
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //

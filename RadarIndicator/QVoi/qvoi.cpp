@@ -114,8 +114,8 @@ void QVoi::listFilters(QList<struct sVoiFilterInfo> &qlFiltersInfo) {
         QCoreTraceFilter::sFilterState & sState = pFilter->getState(m_dTcurrent);
         struct sVoiFilterInfo sInfo;
         sInfo.qpfDistVD=sState.qpfDistVD;
-        sInfo.qsFormular=sState.qsName;
         sInfo.bTrackingOn=pFilter->isTrackingOn();
+        sInfo.qsFormular=QString("Fl:%1").arg(uIndex);
         sInfo.uFilterIndex=uIndex;
         qlFiltersInfo.append(sInfo);
     }

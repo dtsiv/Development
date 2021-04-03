@@ -18,7 +18,12 @@ public:
     enum eMarkerType {
         PRIMARY_POINT,
         CLUSTER_POINT,
-        TRAJECTORY
+        TRAJECTORY_POINT
+    };
+    enum eMarkerState {
+        NORMAL,
+        HIGHLIGHTED,
+        Last
     };
 
     explicit QTargetMarker(const sVoiPrimaryPointInfo &sPriPtInfo);
@@ -27,12 +32,15 @@ public:
     QPointF tar();
     bool hasFormular();
     void setFormular(QFormular *pFormular);
-    void drawMarker(QPainter &painter, QTransform &t);
+    void drawMarker(QPainter &painter, QTransform &t, bool bHighlighted = false);
     QString &mesgString();
+    void prepareTypeMarkers();
+    void clearNewestFlag() { m_bNewestFlag = false; }
+    bool isPrimaryPoint() { return (m_emtType == PRIMARY_POINT); }
 
     // index of the primary point in module QVoi
     int m_iPriPtIdx;
-    int m_iFltIdx;
+    quint32 m_uFilterIdx;
     enum eMarkerType m_emtType;
 
 signals:
@@ -50,6 +58,13 @@ private:
     int m_iBeamNo;
     // power
     double m_dPower;
+    // for trajectory points only
+    bool m_bNewestFlag;
+    // pre-defined markers
+    static QList<QPixmap *>m_qlPPointSymbol;   // primary point
+    static QList<QPixmap *>m_qlCPointSymbol;   // cluster point
+    static QList<QPixmap *>m_qlNewestPoisitionSymbol;  // current filter state
+    static QList<QPixmap *>m_qlTrajectorySymbol;  // previous filter state
 };
 
 #endif // QTARGETMARKER_H

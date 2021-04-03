@@ -49,6 +49,7 @@
 #define QTARGETSMAP_FORMULAR_ITEM_TARVELMPS         10
 #define QTARGETSMAP_FORMULAR_ITEM_SIGTYPE           11
 #define QTARGETSMAP_FORMULAR_ITEM_TARPROBFA         12
+#define QTARGETSMAP_FORMULAR_ITEM_FLTIDX            13
 
 class QIndicatorWindow;
 
@@ -81,6 +82,7 @@ public:
     void addTargetMarker(struct sVoiFilterInfo *pFltInfo);
     void clearMarkers();
     bool getFirstFormular(QPoint &qpPos);
+    bool getFirstMarker(QPoint &qpPos);
     void convertSkipDopplerList(QMultiMap<int,int> &qmmInOut, QString &qsInOut, bool bEncode = false);
 
 signals:
@@ -133,8 +135,10 @@ public:
 
 private:
     QTimer m_qtFormular;
+    quint32 m_uFilterIdxHighlighted;
     QList<QFormular*> m_qlFormulars;
     QList<QTargetMarker*> m_qlTargets;
+    QMap<quint32,quint32> m_qmFltCurrMarker;
     QIndicatorWindow *m_pOwner;
     friend class MapWidget;
 };
