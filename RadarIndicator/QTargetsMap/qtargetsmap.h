@@ -79,8 +79,9 @@ private slots:
 public:
     MapWidget *getMapInstance();
     void addTargetMarker(const struct sVoiPrimaryPointInfo &sPriPtInfo);
-    void addTargetMarker(struct sVoiFilterInfo *pFltInfo);
+    void addTargetMarker(const struct sVoiFilterInfo &pFltInfo);
     void clearMarkers();
+    void refresh() {emit doUpdate();}
     bool getFirstFormular(QPoint &qpPos);
     bool getFirstMarker(QPoint &qpPos);
     void convertSkipDopplerList(QMultiMap<int,int> &qmmInOut, QString &qsInOut, bool bEncode = false);

@@ -30,7 +30,7 @@ public:
     // void ttest();
     double twoSidedStudentSignificance(double dThreshold, int iDegreesOfFreedomN);
     virtual bool eatPrimaryPoint(int iPtIdx) = 0;
-    virtual QCoreTraceFilter::sFilterState getState(double dTime);
+    virtual QCoreTraceFilter::sFilterState getState(double dTime, bool bGetCurrentState = false) const;
     virtual bool isStale(double dTime);
     virtual bool isTrackingOn() { return m_bTrackingOn; }
     virtual quint32 filterId() { return m_uFilterId; }

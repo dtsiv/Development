@@ -26,8 +26,8 @@ public:
         Last
     };
 
-    explicit QTargetMarker(const sVoiPrimaryPointInfo &sPriPtInfo);
-    explicit QTargetMarker(sVoiFilterInfo *pFilterInfo);
+    explicit QTargetMarker(const struct sVoiPrimaryPointInfo &sPriPtInfo);
+    explicit QTargetMarker(const struct sVoiFilterInfo &pFilterInfo);
     ~QTargetMarker();
     QPointF tar();
     bool hasFormular();

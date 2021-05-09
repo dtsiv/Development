@@ -10,7 +10,7 @@ QList<QPixmap *>QTargetMarker::m_qlTrajectorySymbol;        // previous filter s
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-QTargetMarker::QTargetMarker(const sVoiPrimaryPointInfo &sPriPtInfo)
+QTargetMarker::QTargetMarker(const struct sVoiPrimaryPointInfo &sPriPtInfo)
         : QObject(NULL)
         , m_pFormular(NULL)
         , m_qpTarPhys(sPriPtInfo.qpfDistVD)
@@ -23,15 +23,15 @@ QTargetMarker::QTargetMarker(const sVoiPrimaryPointInfo &sPriPtInfo)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-QTargetMarker::QTargetMarker(sVoiFilterInfo *pFilterInfo)
+QTargetMarker::QTargetMarker(const struct sVoiFilterInfo &sFilterInfo)
         : QObject(NULL)
         , m_pFormular(NULL)
-        , m_qpTarPhys(pFilterInfo->qpfDistVD)
-        , m_qsMesg(pFilterInfo->qsFormular)
+        , m_qpTarPhys(sFilterInfo.qpfDistVD)
+        , m_qsMesg(sFilterInfo.qsFormular)
         , m_iPriPtIdx(-1)
-        , m_uFilterIdx(pFilterInfo->uFilterIndex)
+        , m_uFilterIdx(sFilterInfo.uFilterIndex)
         , m_bNewestFlag(true) {
-    if (!pFilterInfo->bTrackingOn) {
+    if (!sFilterInfo.bTrackingOn) {
         m_emtType = CLUSTER_POINT;
     }
     else {

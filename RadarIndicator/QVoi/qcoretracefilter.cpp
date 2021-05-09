@@ -14,10 +14,15 @@ using namespace std;
 bool QCoreTraceFilter::bInit=false;
 QMap<quint32,QTraceFilter *> QCoreTraceFilter::m_qmFilters;
 QList<struct QCoreTraceFilter::sPrimaryPt *> QCoreTraceFilter::m_qlAllPriPts;
-double QCoreTraceFilter::m_dCorrSignif = -1.0e0;
+double QCoreTraceFilter::m_dCorrSignif = 0.8e0;
 QMap<int,double> QCoreTraceFilter::m_qmCorrThresh;
 double QCoreTraceFilter::m_dMeasNoise = -1.0e0;
-int QCoreTraceFilter::m_iMaxClusterSz = -1;
+int QCoreTraceFilter::m_iMaxClusterSz = 6;
+double QCoreTraceFilter::m_dStaleTimeout = 3.0e0;
+double QCoreTraceFilter::m_dSpaceStrobeCutoff = 300.0e0;
+double QCoreTraceFilter::m_dVD_MaxRelOffset = 0.1e0;
+double QCoreTraceFilter::m_dStrobeGrowthVelocity = 0.0e0;
+double QCoreTraceFilter::m_dFilterAlpha = 0.2e0;
 
 //========================================================================
 //
@@ -75,6 +80,7 @@ template <typename T>
 int QCoreTraceFilter::addPrimaryPoint(struct sPrimaryPt &primaryPoint) {
     // immediately add to list and obtain the return index iPtIdx
     int iPtIdx = m_qlAllPriPts.size();
+    double dTs=primaryPoint.dTs;
     T::sPrimaryPt *pp=new T::sPrimaryPt(primaryPoint);
     m_qlAllPriPts.append(pp);
     // get primary point proximity to each filter state
@@ -83,9 +89,11 @@ int QCoreTraceFilter::addPrimaryPoint(struct sPrimaryPt &primaryPoint) {
         QList<double> qlDist;
         QList<quint32> qlKeys=m_qmFilters.keys();
         for (int i=0; i<qlKeys.size(); i++) {
-            qlFltIndxsLocal<<qlKeys.at(i);
-            QTraceFilter *pFilter=m_qmFilters.value(qlKeys.at(i),NULL);
-            if (!pFilter) throw RmoException("QCoreTraceFilter::addPrimaryPoint() pFilter is NULL");
+            quint32 uFilterIndex=qlKeys.at(i);
+            QTraceFilter *pFilter=m_qmFilters.value(uFilterIndex,NULL);
+            // stale filters are always omitted
+            if (!pFilter || pFilter->isStale(dTs)) continue;
+            qlFltIndxsLocal<<uFilterIndex;
             qlDist<<pFilter->calcProximity(pp);
         }
         // sort qlDist ascending together with qlFltIndxsLocal
@@ -166,6 +174,7 @@ void QCoreTraceFilter::initCorrThresh() {
         return;
     }
     // qDebug() << "Student's prob = " << m_dCorrSignif;
+    // for (int i=3; i<=m_iMaxClusterSz; i++) {
     for (int i=3; i<=m_iMaxClusterSz; i++) {
         // Two-sided cumulative Student's distribution thresholds
         double dThresholdMin=0.67e0;

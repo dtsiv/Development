@@ -38,7 +38,6 @@ public:
     explicit QVoi(QObject *parent = 0);
     ~QVoi();
 
-    void listFilters(QList<struct sVoiFilterInfo> & qlFiltersInfo);
     void processPrimaryPoint(
             double dTsExact, // exact time of strobe exection (seconds)
             double dR,       // distance (meters)
@@ -47,6 +46,7 @@ public:
             double dV_D,     // Doppler velocity (m/s)
             double dVDWin,   // Doppler velocity window (m/s)
             struct sVoiPrimaryPointInfo &sPriPtInfoOut);
+    bool getFilterInfo(quint32 uFilterIndex, struct sVoiFilterInfo &sFilterInfoOut);
 
     Q_INVOKABLE void addTab(QObject *pPropDlg, QObject *pPropTabs, int iIdx);
     Q_INVOKABLE void propChanged(QObject *pPropDlg);

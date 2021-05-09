@@ -726,17 +726,16 @@ void QTargetsMap::zoomMap(MapWidget *pMapWidget, int iX, int iY, bool bZoomIn /*
 void QTargetsMap::addTargetMarker(const struct sVoiPrimaryPointInfo &sPriPtInfo) {
     QTargetMarker *pTargetMarker=new QTargetMarker(sPriPtInfo);
     m_qlTargets.append(pTargetMarker);
-    emit doUpdate();
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void QTargetsMap::addTargetMarker(struct sVoiFilterInfo *pFltInfo) {
-    QTargetMarker *pTargetMarker=new QTargetMarker(pFltInfo);
+void QTargetsMap::addTargetMarker(const struct sVoiFilterInfo &sFltInfo) {
+    QTargetMarker *pTargetMarker=new QTargetMarker(sFltInfo);
     // index of traj point new marker - used to monitor current state of filter
     quint32 uIdxNewMarker = m_qlTargets.size();
     // if this trajectory appeared before - update its current state
-    quint32 uFilterIndex = pFltInfo->uFilterIndex;
+    quint32 uFilterIndex = sFltInfo.uFilterIndex;
     if (m_qmFltCurrMarker.contains(uFilterIndex)) {
         quint32 uIdxMarker = m_qmFltCurrMarker.value(uFilterIndex);
         if (uIdxMarker < (quint32)m_qlTargets.size()) { // previous leader marker for traj
@@ -746,7 +745,6 @@ void QTargetsMap::addTargetMarker(struct sVoiFilterInfo *pFltInfo) {
     // current leader marker for traj - insert with replacement!
     m_qmFltCurrMarker.insert(uFilterIndex,uIdxNewMarker);
     m_qlTargets.append(pTargetMarker);
-    emit doUpdate();
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

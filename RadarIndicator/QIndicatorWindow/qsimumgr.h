@@ -33,7 +33,6 @@ public:
     void addPrimaryPointMarker();
     void updateStatusInfo();
     void traceFilter();
-    void filterMarkers();
 
 public:
     quint32 m_uStrobeNo;

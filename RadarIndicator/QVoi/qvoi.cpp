@@ -15,8 +15,6 @@ QVoi::QVoi(QObject *parent /* = 0 */)
     QIniSettings::STATUS_CODES scRes;
     iniSettings.setDefault(QVOI_MEAS_NOISE_VAR,0.0e0);
     m_coreInstance.m_dMeasNoise = iniSettings.value(QVOI_MEAS_NOISE_VAR,scRes).toDouble();
-    m_coreInstance.m_dCorrSignif = 0.8e0;
-    m_coreInstance.m_iMaxClusterSz = 6;
     m_coreInstance.initCorrThresh();
 }
 //--------------------------------------------------------------------------------------------------
@@ -95,28 +93,15 @@ void QVoi::processPrimaryPoint(
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void QVoi::listFilters(QList<struct sVoiFilterInfo> &qlFiltersInfo) {
-    // kill stale filters
-    QListIterator<quint32> i1(m_coreInstance.m_qmFilters.keys());
-    while (i1.hasNext()) {
-        quint32 uIndex=i1.next();
-        QTraceFilter *pFilter = m_coreInstance.m_qmFilters.value(uIndex,NULL);
-        if (pFilter && pFilter->isStale(m_dTcurrent)) {
-            delete m_coreInstance.m_qmFilters.take(uIndex);
-        }
-    }
-    // list the remaining filters and return the list as qlFiltersInfo
-    QMapIterator<quint32,QTraceFilter *> i(m_coreInstance.m_qmFilters);
-    while (i.hasNext()) {
-        i.next();
-        QTraceFilter *pFilter = i.value();
-        quint32 uIndex=i.key();
-        QCoreTraceFilter::sFilterState & sState = pFilter->getState(m_dTcurrent);
-        struct sVoiFilterInfo sInfo;
-        sInfo.qpfDistVD=sState.qpfDistVD;
-        sInfo.bTrackingOn=pFilter->isTrackingOn();
-        sInfo.qsFormular=QString("Fl:%1").arg(uIndex);
-        sInfo.uFilterIndex=uIndex;
-        qlFiltersInfo.append(sInfo);
-    }
+bool QVoi::getFilterInfo(quint32 uFilterIndex, struct sVoiFilterInfo &sFilterInfoOut) {
+    if (!m_coreInstance.m_qmFilters.contains(uFilterIndex)) return false;
+    QTraceFilter *pFilter = m_coreInstance.m_qmFilters.value(uFilterIndex,NULL);
+    if (!pFilter) return false;
+    bool bGetCurrentState=true;
+    QCoreTraceFilter::sFilterState & sState = pFilter->getState(m_dTcurrent, bGetCurrentState);
+    sFilterInfoOut.qpfDistVD=sState.qpfDistVD;
+    sFilterInfoOut.bTrackingOn=pFilter->isTrackingOn();
+    sFilterInfoOut.qsFormular=QString("Fl:%1").arg(uFilterIndex);
+    sFilterInfoOut.uFilterIndex=uFilterIndex;
+    return true;
 }

@@ -38,9 +38,9 @@ QTraceFilter::~QTraceFilter() {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/* virtual */ QCoreTraceFilter::sFilterState QTraceFilter::getState(double dTime) {
+/* virtual */ QCoreTraceFilter::sFilterState QTraceFilter::getState(double dTime, bool bGetCurrentState /*= false*/) const {
     QCoreTraceFilter::sFilterState sState;
-    sState.qpfDistVD=QPointF(0*dTime,0);
+    sState.qpfDistVD=QPointF(0*dTime,0*bGetCurrentState);
     sState.qsName=m_qsFilterName;
     return sState;
 }
@@ -48,6 +48,7 @@ QTraceFilter::~QTraceFilter() {
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /* virtual */ bool QTraceFilter::isStale(double dTime) {
+    qDebug() << "inside QTraceFilter::isStale()";
     return (bool)(0.0*dTime);
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -87,12 +87,12 @@ void QSimuMgr::processStrob() {
     // Obtain list of primary points for targets
     getectTargets();
 
+    // refresh MapWidget
+    m_pTargetsMap->refresh();
+
     if (!m_bStarted) {
         m_bStarted = true;
     }
-
-    // list filters info
-    filterMarkers();
 
     // Update status info
     updateStatusInfo();
@@ -282,10 +282,6 @@ void QSimuMgr::getectTargets() {
 
             // output current values to data file
             dataFileOutput();
-
-            // for the current target: add target marker to QTargetsMap
-            addPrimaryPointMarker();
-
         } // for (int iTarget = 0; iTarget < nTargets; iTarget++) ...
     } // if (m_pPoi->detectTargets()) ...
     // else {
@@ -407,6 +403,15 @@ void QSimuMgr::traceFilter() {
         m_qpfWeighted.y(),
         dVDWin,
         m_sPriPtInfo);
+
+    // for the current target: add target marker to QTargetsMap
+    addPrimaryPointMarker();
+
+    // add filter marker corresponding to this primary point
+    sVoiFilterInfo sFI;
+    if (m_pVoi->getFilterInfo(m_sPriPtInfo.uFilterIndex,sFI)) {
+        m_pTargetsMap->addTargetMarker(sFI);
+    }
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
@@ -642,18 +647,6 @@ void QSimuMgr::restart() {
         // restart timer with new interval (msec)
         // qDebug() << "Main query exec() ok. Starting simulation timer";
         m_pOwner->m_simulationTimer.start(m_pTargetsMap->m_uTimerMSecs);
-    }
-}
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-//
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void QSimuMgr::filterMarkers() {
-    QList <sVoiFilterInfo> qlFiltersInfo;
-    m_pVoi->listFilters(qlFiltersInfo);
-    QListIterator<sVoiFilterInfo> i(qlFiltersInfo);
-    while (i.hasNext()) {
-        sVoiFilterInfo sInfo = i.next();
-        m_pTargetsMap->addTargetMarker(&sInfo);
     }
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

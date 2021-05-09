@@ -57,6 +57,11 @@ protected:
     static QList<struct sPrimaryPt *>m_qlAllPriPts;
     static QMap<int,double> m_qmCorrThresh;
     static int m_iMaxClusterSz;
+    static double m_dStaleTimeout;
+    static double m_dSpaceStrobeCutoff;
+    static double m_dStrobeGrowthVelocity;
+    static double m_dVD_MaxRelOffset;
+    static double m_dFilterAlpha;
 
     // private members - restrict access to them from individual filters
 private:

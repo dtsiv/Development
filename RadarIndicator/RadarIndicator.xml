@@ -2,24 +2,24 @@
 <PARAMETERS>
     <ActivePropertyPage>3</ActivePropertyPage>
     <CarrierFreqMHz>9400</CarrierFreqMHz>
-    <DistanceOriginM>474.90160160783842</DistanceOriginM>
-    <FormularContent>AQABAAAAAAAAAAAAAAE=</FormularContent>
+    <DistanceOriginM>105.30751750392169</DistanceOriginM>
+    <FormularContent>AQABAAAAAAABAAEAAAE=</FormularContent>
     <GridStepAdapt>true</GridStepAdapt>
-    <GridStepDistanceM>320</GridStepDistanceM>
-    <GridStepVelMpS>80</GridStepVelMpS>
-    <PixelsPerDistanceM>0.2972872560482947</PixelsPerDistanceM>
-    <PixelsPerVelMpS>0.77108657885908327</PixelsPerVelMpS>
+    <GridStepDistanceM>640</GridStepDistanceM>
+    <GridStepVelMpS>40</GridStepVelMpS>
+    <PixelsPerDistanceM>0.126078817262573</PixelsPerDistanceM>
+    <PixelsPerVelMpS>1.02631623646144</PixelsPerVelMpS>
     <SQLiteFile>../DATA/chronicaparser_20210210_chk.sqlite3</SQLiteFile>
-    <SkipDoppler>IDUgIDM2MQogNSAgMzkyCiA1ICAxMjAKIDUgIDEyMQogNSAgMzkxCiA1ICAxNTEKIDYgIDEzNQogNiAgMTM2</SkipDoppler>
+    <SkipDoppler>IDUgIDE1MQogNSAgMzkxCiA1ICAxMjEKIDUgIDEyMAogNSAgMzkyCiA1ICAzNjEKIDYgIDEzNgogNiAgMTM1</SkipDoppler>
     <TSamplingMicroSec>0.12</TSamplingMicroSec>
-    <VelOriginMpS>661.18552313954933</VelOriginMpS>
+    <VelOriginMpS>605.12211292947313</VelOriginMpS>
     <antennaSizeAz>0.6</antennaSizeAz>
     <antennaSizeEl>0.9</antennaSizeEl>
     <antennaWeight>0</antennaWeight>
     <beamOffsetD0>0.3</beamOffsetD0>
     <dataFile>../DATA/20201225/00000001</dataFile>
     <falseAlarmProb>1e-08</falseAlarmProb>
-    <geometry>AAAAhQAAADEAAAVWAAADWw==</geometry>
+    <geometry>AAAACQAAACYAAAZsAAAD2Q==</geometry>
     <interferenceRejectorType>0</interferenceRejectorType>
     <maxTargetSize>400</maxTargetSize>
     <measurementNoise>13</measurementNoise>
